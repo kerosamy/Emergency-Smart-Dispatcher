@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.example</groupId>
-	<artifactId>emergency-dispatch-system-backend</artifactId>
+	<artifactId>esd-backend</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>emergency-dispatch-system-backend</name>
+	<name>ESD-backend</name>
 	<description>Demo project for Spring Boot</description>
 	<url/>
 	<licenses>

@@ -1,13 +1,13 @@
-package com.example.emergency_dispatch_system_backend;
+package com.example.esd_backend;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class EmergencyDispatchSystemBackendApplication {
+public class EsdBackendApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(EmergencyDispatchSystemBackendApplication.class, args);
+		SpringApplication.run(EsdBackendApplication.class, args);
 	}
 
 }

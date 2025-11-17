@@ -1,10 +1,10 @@
-package com.example.emergency_dispatch_system_backend;
+package com.example.esd_backend;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class EmergencyDispatchSystemBackendApplicationTests {
+class EsdBackendApplicationTests {
 
 	@Test
 	void contextLoads() {
