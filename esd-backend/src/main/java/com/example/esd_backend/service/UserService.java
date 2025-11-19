@@ -3,6 +3,7 @@ package com.example.esd_backend.service;
 import com.example.esd_backend.dto.SignInRequestDto;
 import com.example.esd_backend.dto.SignUpUserRequestDto;
 import com.example.esd_backend.dto.UserResponsDto;
+import com.example.esd_backend.model.Role;
 import com.example.esd_backend.model.User;
 import com.example.esd_backend.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -38,7 +39,7 @@ public class UserService {
         User user = mappingDtoToUser(signUpUserRequestDto);
 
         // Assign role for dispatcher
-        user.setRole("DISPATCHER");
+        user.setRole(Role.DISPATCHER);
 
         // Save to DB
         userRepository.save(user);
