@@ -1,4 +1,4 @@
-package com.example.esd_backend.model;
+package com.example.esd_backend.model.enums;
 
 public enum Role {
     REPORTER,

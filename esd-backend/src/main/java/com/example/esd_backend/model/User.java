@@ -1,7 +1,11 @@
 package com.example.esd_backend.model;
 
+import com.example.esd_backend.model.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -27,5 +31,15 @@ public class User {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Role role;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<IncidentUser> incidentUsers = new ArrayList<>();
+
+    @OneToMany(mappedBy = "reporter" , cascade = CascadeType.ALL)
+    private List<Incident> userReports = new ArrayList<>();
+
+    @OneToOne(mappedBy = "driver" , cascade = CascadeType.ALL)
+    private Vehicle vehicle;
+
 
 }
