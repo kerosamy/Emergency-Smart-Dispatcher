@@ -3,9 +3,7 @@ package com.example.esd_backend.model;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Getter
 @Setter
@@ -13,8 +11,8 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "confirm")
-public class IncidentUser {
+@Table(name = "solved-by")
+public class SolvedBy {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id ;

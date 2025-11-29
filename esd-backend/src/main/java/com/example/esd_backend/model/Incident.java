@@ -43,10 +43,10 @@ public class Incident {
     private User reporter;
 
     @OneToMany(mappedBy = "incident", cascade = CascadeType.ALL)
-    private List<IncidentVehicle> incidentVehicles = new ArrayList<>();
+    private List<AssignTo> assignTos = new ArrayList<>();
 
     @OneToMany(mappedBy = "incident", cascade = CascadeType.ALL)
-    private List<IncidentUser> incidentUsers  = new ArrayList<>();
+    private List<SolvedBy> solvedBIES = new ArrayList<>();
 
 
 

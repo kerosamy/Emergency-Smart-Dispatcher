@@ -33,7 +33,7 @@ public class User {
     private Role role;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<IncidentUser> incidentUsers = new ArrayList<>();
+    private List<SolvedBy> solvedBIES = new ArrayList<>();
 
     @OneToMany(mappedBy = "reporter" , cascade = CascadeType.ALL)
     private List<Incident> userReports = new ArrayList<>();

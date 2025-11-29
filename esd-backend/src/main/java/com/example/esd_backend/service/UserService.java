@@ -2,7 +2,8 @@ package com.example.esd_backend.service;
 
 import com.example.esd_backend.dto.SignInRequestDto;
 import com.example.esd_backend.dto.SignUpUserRequestDto;
-import com.example.esd_backend.dto.UserResponsDto;
+import com.example.esd_backend.dto.UserResponseDto;
+import com.example.esd_backend.mapper.UserMapper;
 import com.example.esd_backend.model.enums.Role;
 import com.example.esd_backend.model.User;
 import com.example.esd_backend.repository.UserRepository;
@@ -12,11 +13,14 @@ import org.springframework.stereotype.Service;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository , UserMapper userMapper) {
+
         this.userRepository = userRepository;
+        this.userMapper = userMapper;
     }
-    public UserResponsDto signInDispatcher (SignInRequestDto signInUserRequestDto) {
+    public UserResponseDto signInDispatcher (SignInRequestDto signInUserRequestDto) {
 
         String email = signInUserRequestDto.getEmail();
         String password = signInUserRequestDto.getPassword();
@@ -26,42 +30,23 @@ public class UserService {
         if (!user.getPassword().equals(password)) {
             throw new RuntimeException("Incorrect password");
         }
-        return mappingUserToDto(user);
+        return userMapper.toResponseDto(user);
     }
-    public UserResponsDto signUpDispatcher(SignUpUserRequestDto signUpUserRequestDto) {
+    public UserResponseDto signUpDispatcher(SignUpUserRequestDto signUpUserRequestDto) {
 
         // Check if email already exists
         if (userRepository.findByEmail(signUpUserRequestDto.getEmail()).isPresent()) {
             throw new RuntimeException("Email already registered");
         }
 
-        // Convert DTO → Entity
-        User user = mappingDtoToUser(signUpUserRequestDto);
+        User user = userMapper.toEntity(signUpUserRequestDto);
 
-        // Assign role for dispatcher
         user.setRole(Role.DISPATCHER);
 
-        // Save to DB
         userRepository.save(user);
 
-        // Convert back to DTO
-        return mappingUserToDto(user);
+        return userMapper.toResponseDto(user);
     }
 
-    private User mappingDtoToUser(SignUpUserRequestDto dto) {
-        return User.builder()
-                .name(dto.getName())
-                .email(dto.getEmail())
-                .password(dto.getPassword())  // TODO: hash later
-                .build();
-    }
-
-    private UserResponsDto mappingUserToDto(User user) {
-        return UserResponsDto.builder()
-                .id(user.getId())
-                .name(user.getName())
-                .email(user.getEmail())
-                .build();
-    }
 }
 

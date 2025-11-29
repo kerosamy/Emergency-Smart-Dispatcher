@@ -37,7 +37,7 @@ public class Vehicle {
     private Station station;
 
     @OneToMany(mappedBy = "vehicle", cascade = CascadeType.ALL)
-    private List<IncidentVehicle> incidentVehicles = new ArrayList<>();
+    private List<AssignTo> assignTos = new ArrayList<>();
 
 
     @OneToOne

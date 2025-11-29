@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @Builder
 @Entity
 @Table(name = "assign_to")
-public class IncidentVehicle {
+public class AssignTo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
