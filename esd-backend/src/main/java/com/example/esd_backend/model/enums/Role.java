@@ -1,7 +1,8 @@
 package com.example.esd_backend.model.enums;
 
 public enum Role {
-    REPORTER,
-    DISPATCHER,
-    ADMIN
+    reporter,
+    dispatcher,
+    admin,
+    responder
 }
