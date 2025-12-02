@@ -173,16 +173,23 @@ public class IncidentService {
             .map(this::convertToResponseDto)
             .collect(Collectors.toList());
     }
-    
-    
+
     @Transactional
-    public void updateIncidentStatus(Long incidentId, UpdateStatusRequestDto request) {
+    public void updateIncident(Long incidentId, UpdateIncidentDto request) {
         Incident incident = incidentRepository.findById(incidentId)
             .orElseThrow(() -> new RuntimeException("Incident not found with ID: " + incidentId));
-        
-        incident.setStatus(IncidentStatus.valueOf(request.getStatus().toLowerCase()));
+
+        if (request.getSeverity() != null) {
+            incident.setSeverity(request.getSeverity());
+        }
+        if (request.getCapacity() != null) {
+            incident.setCapacity(request.getCapacity());
+        }
+        if(request.getType() != null) {
+            incident.setType(IncidentType.valueOf(request.getType().toString()));
+        }
         incidentRepository.save(incident);
-        logger.info("Incident {} status updated to: {}", incidentId, request.getStatus());
+        logger.info("Incident {} updated with new details.", incidentId);
     }
     
     
