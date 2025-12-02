@@ -17,7 +17,6 @@ public class IncidentMapper {
             dto.setType(incident.getType().name().toLowerCase());
             dto.setLatitude(incident.getLatitude());
             dto.setLongitude(incident.getLongitude());
-            dto.setLocation(incident.getLocation() != null ? incident.getLocation() : "");
             dto.setStatus(incident.getStatus().name().toLowerCase());
             
             if (incident.getReportTime() != null) {

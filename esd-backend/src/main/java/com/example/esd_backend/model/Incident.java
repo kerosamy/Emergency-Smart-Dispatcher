@@ -29,9 +29,6 @@ public class Incident {
 
     @Column(nullable = false)
     private double longitude;
-
-    @Column(nullable = true)
-    private String location;
     
     @Column(nullable = true)
     private Integer severity;

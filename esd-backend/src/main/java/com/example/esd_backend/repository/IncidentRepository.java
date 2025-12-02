@@ -28,9 +28,7 @@ public interface IncidentRepository extends JpaRepository<Incident, Long> {
                                        @Param("maxLon") Double maxLon);
     
     List<Incident> findByLatitudeAndLongitudeOrderByReportTimeDesc(Double latitude, Double longitude);
-    
-    List<Incident> findByLocationOrderByReportTimeDesc(String location);
-    
+        
     List<Incident> findAllByOrderByReportTimeDesc();
     
     @Query("SELECT i FROM Incident i WHERE i.status = 'REPORTED' ORDER BY i.reportTime ASC")

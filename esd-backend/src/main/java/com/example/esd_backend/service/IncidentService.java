@@ -43,11 +43,10 @@ public class IncidentService {
     @Transactional
     public IncidentResponseDto reportIncident(IncidentRequestDto request) {
         Incident incident = new Incident();
-        incident.setType(IncidentType.valueOf(request.getType().toLowerCase()));
+        incident.setType(IncidentType.valueOf(request.getType()));
         incident.setLatitude(request.getLatitude());
         incident.setLongitude(request.getLongitude());
-        incident.setLocation(request.getLocation());
-        incident.setStatus(IncidentStatus.reported);
+        incident.setStatus(IncidentStatus.REPORTED);
         incident.setReportTime(LocalDateTime.now());
         incident.setSeverity(request.getSeverity() != null ? request.getSeverity() : 1);
         incident.setCapacity(request.getCapacity() != null ? request.getCapacity() : 0);
@@ -142,14 +141,6 @@ public class IncidentService {
             .collect(Collectors.toList());
     }
     
-    public List<IncidentResponseDto> getIncidentsByLocationName(String location) {
-        List<Incident> incidents = incidentRepository.findByLocationOrderByReportTimeDesc(location);
-        logger.info("Retrieved {} incidents at location: {}", incidents.size(), location);
-        return incidents.stream()
-            .map(this::convertToResponseDto)
-            .collect(Collectors.toList());
-    }
-    
     public List<IncidentResponseDto> getUnassignedIncidents() {
         List<Incident> incidents = incidentRepository.findUnassignedIncidents();
         logger.info("Retrieved {} unassigned incidents", incidents.size());
@@ -222,7 +213,7 @@ public class IncidentService {
                 solvedByRepository.save(solvedBy);
             }
             
-            incident.setStatus(IncidentStatus.dispatched);
+            incident.setStatus(IncidentStatus.DISPATCHED);
             incidentRepository.save(incident);
             
             logger.info("Vehicle {} assigned to incident {}", vehicleId, incidentId);
@@ -276,7 +267,7 @@ public class IncidentService {
         solvedBy.setSolutionTime(LocalDateTime.now());
         solvedByRepository.save(solvedBy);
         
-        incident.setStatus(IncidentStatus.resolved);
+        incident.setStatus(IncidentStatus.RESOLVED);
         incidentRepository.save(incident);
         
         logger.info("Incident {} resolved successfully by user {}", incidentId, request.getUserId());

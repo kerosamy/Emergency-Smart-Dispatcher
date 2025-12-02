@@ -15,9 +15,8 @@ public class IncidentRequestDto {
     private Integer capacity;
     
     public IncidentRequestDto() {
-        this.status = "reported";
+        this.status = "REPORTED";
         this.capacity = 0;
-        this.location = "";
     }
     
     public IncidentRequestDto(Integer reporterId, String type, Integer severity, 
@@ -27,7 +26,7 @@ public class IncidentRequestDto {
         this.severity = severity;
         this.latitude = latitude;
         this.longitude = longitude;
-        this.status = "reported";
+        this.status = "REPORTED";
         this.capacity = capacity != null ? capacity : 0;
     }
 
@@ -38,7 +37,7 @@ public class IncidentRequestDto {
         this.severity = 1;
         this.latitude = latitude;
         this.longitude = longitude;
-        this.status = "reported";
+        this.status = "REPORTED";
         this.capacity = capacity != null ? capacity : 0;
     }
     
@@ -114,7 +113,6 @@ public class IncidentRequestDto {
                 ", severity=" + severity +
                 ", latitude=" + latitude +
                 ", longitude=" + longitude +
-                ", location='" + location + '\'' +
                 ", status='" + status + '\'' +
                 ", capacity=" + capacity +
                 '}';

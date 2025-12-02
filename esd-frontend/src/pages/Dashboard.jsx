@@ -94,6 +94,17 @@ function Dashboard() {
     return icons[type?.toLowerCase()] || '⚠️'
   }
 
+  const getSeverityLabel = (severity) => {
+    const labels = {
+      1: 'Low',
+      2: 'Medium',
+      3: 'High',
+      4: 'Urgent',
+      5: 'Critical'
+    }
+    return labels[severity] || 'Unknown'
+  }
+
   const getPriorityColor = (severity) => {
     if (severity >= 4) return 'bg-red-900 text-red-200'
     if (severity >= 2) return 'bg-orange-900 text-orange-200'
@@ -274,7 +285,7 @@ function Dashboard() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-gray-300">
-                        {emergency.location || `${emergency.latitude}, ${emergency.longitude}`}
+                        {`X:${emergency.latitude}, Y:${emergency.longitude}`}
                       </td>
                       <td className="px-6 py-4">
                         <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(emergency.status)}`}>
@@ -283,7 +294,7 @@ function Dashboard() {
                       </td>
                       <td className="px-6 py-4">
                         <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getPriorityColor(emergency.severity)}`}>
-                          Level {emergency.severity}
+                          {getSeverityLabel(emergency.severity)}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-gray-400 text-sm">

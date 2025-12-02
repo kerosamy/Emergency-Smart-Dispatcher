@@ -77,13 +77,6 @@ public class IncidentController {
         return ResponseEntity.ok(incidents);
     }
     
-    @GetMapping("/location-name/{locationName}")
-    public ResponseEntity<List<IncidentResponseDto>> getIncidentsByLocationName(
-            @PathVariable String locationName) {
-        List<IncidentResponseDto> incidents = incidentService.getIncidentsByLocationName(locationName);
-        return ResponseEntity.ok(incidents);
-    }
-    
     @GetMapping("/unassigned")
     public ResponseEntity<List<IncidentResponseDto>> getUnassignedIncidents() {
         List<IncidentResponseDto> incidents = incidentService.getUnassignedIncidents();

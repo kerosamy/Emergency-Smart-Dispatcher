@@ -40,7 +40,6 @@ function IncidentForm({ isOpen, onClose, mode, incidentData, onSuccess }) {
       setFormData({
         severity: incident.severity || '',
         type: incident.type || '',
-        location: incident.location || '',
         longitude: incident.longitude || '',
         latitude: incident.latitude || '',
         capacity: incident.capacity || '',
@@ -60,7 +59,6 @@ function IncidentForm({ isOpen, onClose, mode, incidentData, onSuccess }) {
     setFormData({
       severity: '1',
       type: '',
-      location: '',
       longitude: '',
       latitude: '',
       capacity: '0',
@@ -87,9 +85,8 @@ function IncidentForm({ isOpen, onClose, mode, incidentData, onSuccess }) {
     try {
       if (mode === 'new') {
         const payload = {
-          type: formData.type.toLowerCase(),
+          type: formData.type.toUpperCase(),
           severity: parseInt(formData.severity) || 1,
-          location: formData.location,
           latitude: parseFloat(formData.latitude) || 0,
           longitude: parseFloat(formData.longitude) || 0,
           capacity: parseInt(formData.capacity) || 0,
@@ -118,7 +115,7 @@ function IncidentForm({ isOpen, onClose, mode, incidentData, onSuccess }) {
       } else if (mode === 'view') {
         const payload = {
           severity: parseInt(formData.severity) || 1,
-          type: formData.type.toLowerCase(),
+          type: formData.type.toUpperCase(),
           capacity: parseInt(formData.capacity) || 0
         }
         console.log('📤 Updating incident with payload:', JSON.stringify(payload, null, 2))
@@ -244,21 +241,6 @@ function IncidentForm({ isOpen, onClose, mode, incidentData, onSuccess }) {
                     onChange={handleInputChange}
                     required
                     className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-red-500"
-                  />
-                </div>
-
-                {/* Location - READ ONLY */}
-                <div>
-                  <label className="block text-gray-300 text-sm font-semibold mb-2">Location Name</label>
-                  <input
-                    type="text"
-                    name="location"
-                    value={formData.location}
-                    onChange={handleInputChange}
-                    disabled={mode === 'view'}
-                    className={`w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-red-500 ${
-                      mode === 'view' ? 'opacity-60 cursor-not-allowed' : ''
-                    }`}
                   />
                 </div>
 
