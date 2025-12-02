@@ -2,12 +2,15 @@ package com.example.esd_backend.service;
 
 import com.example.esd_backend.dto.SignInRequestDto;
 import com.example.esd_backend.dto.SignUpUserRequestDto;
+import com.example.esd_backend.dto.UnassignedResponderDto;
 import com.example.esd_backend.dto.UserResponseDto;
 import com.example.esd_backend.mapper.UserMapper;
 import com.example.esd_backend.model.enums.Role;
 import com.example.esd_backend.model.User;
 import com.example.esd_backend.repository.UserRepository;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class UserService {
@@ -48,5 +51,10 @@ public class UserService {
         return userMapper.toResponseDto(user);
     }
 
+    public List<UnassignedResponderDto> getUnassignedResponders() {
+        return userRepository.findByRoleAndVehicleIsNull(Role.RESPONDER).stream()
+                .map(u -> new UnassignedResponderDto(u.getName()))
+                .toList();
+    }
 }
 

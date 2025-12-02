@@ -13,13 +13,18 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "station")
+@Table(
+        name = "station",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"latitude", "longitude"})
+        }
+)
 public class Station {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String name;
 
     @Column(nullable = false)

@@ -23,7 +23,7 @@ public class Vehicle {
     private Long id;
 
     @Column(nullable = false)
-    private Integer Capacity;
+    private Integer capacity;
 
     @Column(nullable = false)
     private StationType stationType;
@@ -33,17 +33,14 @@ public class Vehicle {
     private VehicleStatus vehicleStatus;
 
     @ManyToOne()
-    @JoinColumn(name = "station_id")
+    @JoinColumn(name = "station_name", referencedColumnName = "name")
     private Station station;
 
     @OneToMany(mappedBy = "vehicle", cascade = CascadeType.ALL)
     private List<AssignTo> assignTos = new ArrayList<>();
 
-
     @OneToOne
     @JoinColumn(name = "user_id")
     private User driver;
-
-
 
 }
