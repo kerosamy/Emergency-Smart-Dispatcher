@@ -12,6 +12,7 @@ public class UserMapper {
                 .name(dto.getName())
                 .email(dto.getEmail())
                 .password(dto.getPassword())  // TODO: hash later
+                .role(dto.getRole())
                 .build();
     }
 
