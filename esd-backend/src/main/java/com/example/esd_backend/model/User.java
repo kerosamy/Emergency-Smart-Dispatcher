@@ -28,7 +28,7 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     @Enumerated(EnumType.STRING)
     private Role role;
 
@@ -40,6 +40,4 @@ public class User {
 
     @OneToOne(mappedBy = "driver" , cascade = CascadeType.ALL)
     private Vehicle vehicle;
-
-
 }
