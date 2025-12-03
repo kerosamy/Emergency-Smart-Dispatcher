@@ -1,17 +1,139 @@
 import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import IncidentForm from '../Components/IncidentForm'
 
 function Dashboard() {
   const navigate = useNavigate()
+  const [emergencies, setEmergencies] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [stats, setStats] = useState({
+    active: 0,
+    resolved: 0,
+    available: 8,
+    avgResponse: '4.2m'
+  })
+  const [formOpen, setFormOpen] = useState(false)
+  const [formMode, setFormMode] = useState('new')
+  const [selectedIncident, setSelectedIncident] = useState(null)
+
+  // Fetch all incidents when component loads
+  useEffect(() => {
+    fetchAllIncidents()
+  }, [])
+
+  const fetchAllIncidents = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('http://localhost:8080/api/incidents')
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch incidents')
+      }
+      
+      const data = await response.json()
+      setEmergencies(data)
+      
+      // Calculate stats from the data
+      const activeCount = data.filter(inc => 
+        inc.status === 'reported' || inc.status === 'dispatched'
+      ).length
+      
+      const resolvedCount = data.filter(inc => 
+        inc.status === 'resolved'
+      ).length
+      
+      setStats(prev => ({
+        ...prev,
+        active: activeCount,
+        resolved: resolvedCount
+      }))
+      
+      setError(null)
+    } catch (err) {
+      setError(err.message)
+      console.error('Error fetching incidents:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleLogout = () => {
     navigate('/login')
   }
 
-  const emergencies = [
-    { id: 1, type: 'Fire', location: '123 Main St', status: 'Active', priority: 'High', time: '2 min ago' },
-    { id: 2, type: 'Medical', location: '456 Oak Ave', status: 'Dispatched', priority: 'Critical', time: '5 min ago' },
-    { id: 3, type: 'Accident', location: '789 Pine Rd', status: 'Active', priority: 'Medium', time: '8 min ago' },
-  ]
+  const openNewIncidentForm = () => {
+    setFormMode('new')
+    setSelectedIncident(null)
+    setFormOpen(true)
+  }
+
+  const openViewIncidentForm = (incident) => {
+    setFormMode('view')
+    setSelectedIncident(incident)
+    setFormOpen(true)
+  }
+
+  const closeForm = () => {
+    setFormOpen(false)
+    setSelectedIncident(null)
+  }
+
+  const handleFormSuccess = () => {
+    fetchAllIncidents()
+  }
+
+  const getEmergencyIcon = (type) => {
+    const icons = {
+      fire: '🔥',
+      medical: '🚑',
+      accident: '🚗',
+      police: '👮',
+      rescue: '🆘'
+    }
+    return icons[type?.toLowerCase()] || '⚠️'
+  }
+
+  const getSeverityLabel = (severity) => {
+    const labels = {
+      1: 'Low',
+      2: 'Medium',
+      3: 'High',
+      4: 'Urgent',
+      5: 'Critical'
+    }
+    return labels[severity] || 'Unknown'
+  }
+
+  const getPriorityColor = (severity) => {
+    if (severity >= 4) return 'bg-red-900 text-red-200'
+    if (severity >= 2) return 'bg-orange-900 text-orange-200'
+    return 'bg-yellow-900 text-yellow-200'
+  }
+
+  const getStatusColor = (status) => {
+    const colors = {
+      reported: 'bg-yellow-900 text-yellow-300',
+      dispatched: 'bg-blue-900 text-blue-300',
+      resolved: 'bg-green-900 text-green-300'
+    }
+    return colors[status?.toLowerCase()] || 'bg-gray-900 text-gray-300'
+  }
+
+  const formatTime = (timestamp) => {
+    if (!timestamp) return 'N/A'
+    const date = new Date(timestamp)
+    const now = new Date()
+    const diffMs = now - date
+    const diffMins = Math.floor(diffMs / 60000)
+    
+    if (diffMins < 1) return 'Just now'
+    if (diffMins < 60) return `${diffMins} min ago`
+    const diffHours = Math.floor(diffMins / 60)
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`
+    const diffDays = Math.floor(diffHours / 24)
+    return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`
+  }
 
   return (
     <div className="min-h-screen bg-gray-900">
@@ -51,7 +173,7 @@ function Dashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-red-200 text-sm font-medium mb-1">Active Emergencies</p>
-                <p className="text-4xl font-bold text-white">12</p>
+                <p className="text-4xl font-bold text-white">{stats.active}</p>
               </div>
               <div className="bg-red-700 bg-opacity-50 p-3 rounded-full">
                 <svg className="w-8 h-8 text-white animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -65,7 +187,7 @@ function Dashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-green-200 text-sm font-medium mb-1">Resolved Today</p>
-                <p className="text-4xl font-bold text-white">45</p>
+                <p className="text-4xl font-bold text-white">{stats.resolved}</p>
               </div>
               <div className="bg-green-700 bg-opacity-50 p-3 rounded-full">
                 <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -79,7 +201,7 @@ function Dashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-blue-200 text-sm font-medium mb-1">Available Units</p>
-                <p className="text-4xl font-bold text-white">8</p>
+                <p className="text-4xl font-bold text-white">{stats.available}</p>
               </div>
               <div className="bg-blue-700 bg-opacity-50 p-3 rounded-full">
                 <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -93,7 +215,7 @@ function Dashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-yellow-200 text-sm font-medium mb-1">Avg Response Time</p>
-                <p className="text-4xl font-bold text-white">4.2<span className="text-xl">m</span></p>
+                <p className="text-4xl font-bold text-white">{stats.avgResponse}</p>
               </div>
               <div className="bg-yellow-700 bg-opacity-50 p-3 rounded-full">
                 <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -106,68 +228,99 @@ function Dashboard() {
 
         {/* Active Emergencies Table */}
         <div className="bg-gray-800 rounded-xl shadow-lg border border-gray-700 overflow-hidden">
-          <div className="bg-gradient-to-r from-red-900 to-red-800 px-6 py-4 border-b border-red-700">
+          <div className="bg-gradient-to-r from-red-900 to-red-800 px-6 py-4 border-b border-red-700 flex items-center justify-between">
             <h2 className="text-2xl font-bold text-white flex items-center gap-2">
               <div className="w-3 h-3 bg-red-500 rounded-full animate-ping"></div>
-              Active Emergencies
+              All Incidents
             </h2>
+            <button 
+              onClick={fetchAllIncidents}
+              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition duration-200"
+            >
+              Refresh
+            </button>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-900">
-                <tr>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Type</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Location</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Priority</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Time</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-700">
-                {emergencies.map((emergency) => (
-                  <tr key={emergency.id} className="hover:bg-gray-700 transition duration-150">
-                    <td className="px-6 py-4">
-                      <span className="flex items-center gap-2 text-white font-medium">
-                        {emergency.type === 'Fire' && '🔥'}
-                        {emergency.type === 'Medical' && '🚑'}
-                        {emergency.type === 'Accident' && '🚗'}
-                        {emergency.type}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-gray-300">{emergency.location}</td>
-                    <td className="px-6 py-4">
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        emergency.status === 'Active' ? 'bg-red-900 text-red-300' : 'bg-yellow-900 text-yellow-300'
-                      }`}>
-                        {emergency.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        emergency.priority === 'Critical' ? 'bg-red-900 text-red-200' :
-                        emergency.priority === 'High' ? 'bg-orange-900 text-orange-200' :
-                        'bg-yellow-900 text-yellow-200'
-                      }`}>
-                        {emergency.priority}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-gray-400 text-sm">{emergency.time}</td>
-                    <td className="px-6 py-4">
-                      <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition duration-200">
-                        View Details
-                      </button>
-                    </td>
+          
+          {loading ? (
+            <div className="p-8 text-center text-gray-400">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto"></div>
+              <p className="mt-4">Loading incidents...</p>
+            </div>
+          ) : error ? (
+            <div className="p-8 text-center">
+              <p className="text-red-400 mb-4">Error: {error}</p>
+              <button 
+                onClick={fetchAllIncidents}
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg"
+              >
+                Retry
+              </button>
+            </div>
+          ) : emergencies.length === 0 ? (
+            <div className="p-8 text-center text-gray-400">
+              No incidents found
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-900">
+                  <tr>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">ID</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Type</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Location</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Severity</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Time</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-gray-700">
+                  {emergencies.map((emergency) => (
+                    <tr key={emergency.id} className="hover:bg-gray-700 transition duration-150">
+                      <td className="px-6 py-4 text-gray-300">#{emergency.id}</td>
+                      <td className="px-6 py-4">
+                        <span className="flex items-center gap-2 text-white font-medium">
+                          {getEmergencyIcon(emergency.type)}
+                          {emergency.type}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-gray-300">
+                        {`X:${emergency.latitude}, Y:${emergency.longitude}`}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(emergency.status)}`}>
+                          {emergency.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getPriorityColor(emergency.severity)}`}>
+                          {getSeverityLabel(emergency.severity)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-gray-400 text-sm">
+                        {formatTime(emergency.reportTime)}
+                      </td>
+                      <td className="px-6 py-4">
+                        <button
+                          onClick={() => openViewIncidentForm(emergency)} 
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition duration-200">
+                          View Details
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-          <button className="bg-gradient-to-br from-red-600 to-red-700 text-white p-6 rounded-xl shadow-lg border border-red-500 hover:scale-105 transition duration-200 flex items-center gap-4">
+          <button 
+            onClick={openNewIncidentForm}
+            className="bg-gradient-to-br from-red-600 to-red-700 text-white p-6 rounded-xl shadow-lg border border-red-500 hover:scale-105 transition duration-200 flex items-center gap-4"
+          >
             <div className="bg-red-800 p-3 rounded-full">
               <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -224,6 +377,15 @@ function Dashboard() {
         </div>
 
       </div>
+
+      {/* Incident Form Modal */}
+      <IncidentForm
+        isOpen={formOpen}
+        onClose={closeForm}
+        mode={formMode}
+        incidentData={selectedIncident}
+        onSuccess={handleFormSuccess}
+      />
 
       {/* Emergency Alert Bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-red-600 via-yellow-500 to-red-600 h-1 animate-pulse"></div>

@@ -3,6 +3,7 @@ package com.example.esd_backend.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Getter
@@ -11,20 +12,32 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "solved-by")
+@Table(name = "confirm")
+@IdClass(SolvedBy.SolvedById.class)
 public class SolvedBy {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id ;
-
-    private LocalDateTime arrivalTime ;
-    private LocalDateTime solutionTime ;
-
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user ;
-
     @ManyToOne
     @JoinColumn(name = "incident_id")
-    private Incident incident ;
+    private Incident incident;
+
+    @Id
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    @Column(name = "arrival_time")
+    private LocalDateTime arrivalTime;
+
+    @Column(name = "solution_time")
+    private LocalDateTime solutionTime;
+
+    // Composite Key Class
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class SolvedById implements Serializable {
+        private Long incident;
+        private Long user;
+    }
 }

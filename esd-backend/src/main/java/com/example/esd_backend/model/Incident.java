@@ -21,14 +21,20 @@ public class Incident {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime assignTime;
+    @Column(name = "report_time", nullable = false, updatable = false)
+    private LocalDateTime reportTime;
 
     @Column(nullable = false)
     private double latitude;
 
     @Column(nullable = false)
     private double longitude;
+    
+    @Column(nullable = true)
+    private Integer severity;
+    
+    @Column(nullable = true)
+    private Integer capacity;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -39,7 +45,7 @@ public class Incident {
     private IncidentStatus status;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "reporter_id")
     private User reporter;
 
     @OneToMany(mappedBy = "incident", cascade = CascadeType.ALL)
@@ -47,9 +53,4 @@ public class Incident {
 
     @OneToMany(mappedBy = "incident", cascade = CascadeType.ALL)
     private List<SolvedBy> solvedBIES = new ArrayList<>();
-
-
-
-
-
 }
