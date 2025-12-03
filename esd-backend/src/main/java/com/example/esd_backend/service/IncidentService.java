@@ -231,17 +231,6 @@ public class IncidentService {
             throw new RuntimeException("Incident not found");
         }
     }
-    
-    
-    public Long countIncidentsByStatus(String status) {
-        IncidentStatus incidentStatus = IncidentStatus.valueOf(status.toLowerCase());
-        return incidentRepository.countByStatus(incidentStatus);
-    }
-    
-    public Long countIncidentsByType(String type) {
-        IncidentType incidentType = IncidentType.valueOf(type.toLowerCase());
-        return incidentRepository.countByType(incidentType);
-    }
 
     private IncidentResponseDto convertToResponseDto(Incident incident) {
         return IncidentMapper.convertToResponseDto(incident);
