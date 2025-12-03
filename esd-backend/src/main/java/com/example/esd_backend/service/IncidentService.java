@@ -41,7 +41,7 @@ public class IncidentService {
     
     
     @Transactional
-    public IncidentResponseDto reportIncident(IncidentRequestDto request) {
+    public void reportIncident(IncidentRequestDto request) {
         Incident incident = new Incident();
         incident.setType(IncidentType.valueOf(request.getType()));
         incident.setLatitude(request.getLatitude());
@@ -50,41 +50,21 @@ public class IncidentService {
         incident.setReportTime(LocalDateTime.now());
         incident.setSeverity(request.getSeverity() != null ? request.getSeverity() : 1);
         incident.setCapacity(request.getCapacity() != null ? request.getCapacity() : 0);
+        User reporter = userRepository.findById(Long.valueOf(request.getReporterId())).orElseThrow(() -> new RuntimeException("Reporter not found"));
+        incident.setReporter(reporter);
         
-        if (request.getReporterId() != null) {
-            User reporter = userRepository.findById(Long.valueOf(request.getReporterId()))
-                .orElseThrow(() -> new RuntimeException("Reporter not found"));
-            incident.setReporter(reporter);
-        }
-        
-        Incident saved = incidentRepository.save(incident);
-        logger.info("Incident reported successfully with ID: {}", saved.getId());
-        
-        return convertToResponseDto(saved);
-    }
+        incidentRepository.save(incident);        
+}
     
     
     public IncidentResponseDto getIncidentById(Long incidentId) {
-        Incident incident = incidentRepository.findById(incidentId)
-            .orElseThrow(() -> new RuntimeException("Incident not found with ID: " + incidentId));
-        logger.debug("Retrieved incident with ID: {}", incidentId);
+        Incident incident = incidentRepository.findById(incidentId).get();
         
         IncidentResponseDto dto = convertToResponseDto(incident);
-        
-        try {
-            if (incident.getReporter() != null) {
-                dto.setReporterName(incidentRepository.findReporterByIncidentId(incidentId));
-            }
-        } catch (Exception e) {
-            logger.debug("No reporter for incident {}", incidentId);
-        }
-
-        try {
-            Long count = incidentRepository.countAssignedVehiclesByIncidentId(incidentId);
-            dto.setAssignedVehicleCount(count != null ? count.intValue() : 0);
-            logger.info("Incident {} has {} assigned vehicles", incidentId, count);
-        } catch (Exception e) {
-            logger.error("Error counting assigned vehicles for incident {}: {}", incidentId, e.getMessage());
+        dto.setReporterName(incidentRepository.findReporterByIncidentId(incidentId));
+        try{Long count = incidentRepository.countAssignedVehiclesByIncidentId(incidentId);
+        dto.setAssignedVehicleCount(count != null ? count.intValue() : 0);}
+        catch (Exception e){
             dto.setAssignedVehicleCount(0);
         }
 
@@ -93,18 +73,14 @@ public class IncidentService {
     
     public List<IncidentResponseDto> getAllIncidents() {
         List<Incident> incidents = incidentRepository.findAllByOrderByReportTimeDesc();
-        logger.info("Retrieved {} incidents successfully.", incidents.size());
         return incidents.stream()
             .map(i -> {
                 IncidentResponseDto dto = convertToResponseDto(i);
-                try {
-                    dto.setReporterName(i.getReporter() != null ? i.getReporter().getName() : null);
-                } catch (Exception e) {
-                }
-                try {
-                    Long count = incidentRepository.countAssignedVehiclesByIncidentId(i.getId());
-                    dto.setAssignedVehicleCount(count != null ? count.intValue() : 0);
-                } catch (Exception e) {
+                dto.setReporterName(i.getReporter() != null ? i.getReporter().getName() : null);
+                try{
+                Long count = incidentRepository.countAssignedVehiclesByIncidentId(i.getId());
+                dto.setAssignedVehicleCount(count != null ? count.intValue() : 0);
+                } catch (Exception e){
                     dto.setAssignedVehicleCount(0);
                 }
                 return dto;
@@ -114,8 +90,7 @@ public class IncidentService {
 
     @Transactional
     public void updateIncident(Long incidentId, UpdateIncidentDto request) {
-        Incident incident = incidentRepository.findById(incidentId)
-            .orElseThrow(() -> new RuntimeException("Incident not found with ID: " + incidentId));
+        Incident incident = incidentRepository.findById(incidentId).get();
 
         if (request.getSeverity() != null) {
             incident.setSeverity(request.getSeverity());
@@ -127,24 +102,17 @@ public class IncidentService {
             incident.setType(IncidentType.valueOf(request.getType().toString()));
         }
         incidentRepository.save(incident);
-        logger.info("Incident {} updated with new details.", incidentId);
     }
     
     
     @Transactional
-    public AssignVehicleResponseDto assignVehicleToIncident(Long incidentId, Long vehicleId) {
-        try {
-            Incident incident = incidentRepository.findById(incidentId)
-                .orElseThrow(() -> new RuntimeException("Incident not found"));
+    public void assignVehicleToIncident(Long incidentId, Long vehicleId) {
+            Incident incident = incidentRepository.findById(incidentId).get();
             
-            Vehicle vehicle = vehicleRepository.findById(vehicleId)
-                .orElseThrow(() -> new RuntimeException("Vehicle not found"));
+            Vehicle vehicle = vehicleRepository.findById(vehicleId).get();
             
             if (vehicle.getVehicleStatus() != VehicleStatus.AVAILABLE) {
                 logger.warn("Vehicle {} is not available. Status: {}", vehicle.getId(), vehicle.getVehicleStatus());
-                return AssignVehicleResponseDto.failure(
-                    "Vehicle is not available (Status: " + vehicle.getVehicleStatus() + ")"
-                );
             }
             
             AssignTo assignTo = new AssignTo();
@@ -162,74 +130,41 @@ public class IncidentService {
             
             incident.setStatus(IncidentStatus.DISPATCHED);
             incidentRepository.save(incident);
-            
-            logger.info("Vehicle {} assigned to incident {}", vehicleId, incidentId);
-            
-            return AssignVehicleResponseDto.success(
-                "Vehicle assigned successfully",
-                vehicle.getId().intValue(),
-                vehicle.getDriver() != null ? vehicle.getDriver().getId().intValue() : null
-            );
-            
-        } catch (Exception e) {
-            logger.error("Error assigning vehicle to incident", e);
-            return AssignVehicleResponseDto.failure("Error occurred during vehicle assignment: " + e.getMessage());
-        }
     }
     
     
     @Transactional
     public void confirmArrival(Long incidentId, ConfirmArrivalRequestDTO request) {
-        Incident incident = incidentRepository.findById(incidentId)
-            .orElseThrow(() -> new RuntimeException("Incident not found"));
+        Incident incident = incidentRepository.findById(incidentId).get();
         
-        User user = userRepository.findById(Long.valueOf(request.getUserId()))
-            .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findById(Long.valueOf(request.getUserId())).get();
         
-        SolvedBy solvedBy = solvedByRepository.findByIncidentAndUser(incident, user)
-            .orElseGet(() -> {
-                SolvedBy newSolvedBy = new SolvedBy();
-                newSolvedBy.setIncident(incident);
-                newSolvedBy.setUser(user);
-                return newSolvedBy;
-            });
+        SolvedBy solvedBy = solvedByRepository.findByIncidentAndUser(incident, user).get();
         
         solvedBy.setArrivalTime(LocalDateTime.now());
         solvedByRepository.save(solvedBy);
         
-        logger.info("Arrival confirmed for user {} at incident {}", request.getUserId(), incidentId);
     }
     
     @Transactional
     public void resolveIncident(Long incidentId, ConfirmSolutionRequestDTO request) {
-        Incident incident = incidentRepository.findById(incidentId)
-            .orElseThrow(() -> new RuntimeException("Incident not found"));
+        Incident incident = incidentRepository.findById(incidentId).get();
         
-        User user = userRepository.findById(Long.valueOf(request.getUserId()))
-            .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findById(Long.valueOf(request.getUserId())).get();
         
-        SolvedBy solvedBy = solvedByRepository.findByIncidentAndUser(incident, user)
-            .orElseThrow(() -> new RuntimeException("No assignment found for this user and incident"));
+        SolvedBy solvedBy = solvedByRepository.findByIncidentAndUser(incident, user).get();
         
         solvedBy.setSolutionTime(LocalDateTime.now());
         solvedByRepository.save(solvedBy);
         
         incident.setStatus(IncidentStatus.RESOLVED);
         incidentRepository.save(incident);
-        
-        logger.info("Incident {} resolved successfully by user {}", incidentId, request.getUserId());
     }
     
     
     @Transactional
     public void deleteIncident(Long incidentId) {
-        if (incidentRepository.existsById(incidentId)) {
             incidentRepository.deleteById(incidentId);
-            logger.info("Incident {} deleted successfully.", incidentId);
-        } else {
-            logger.warn("No incident found with ID {} to delete.", incidentId);
-            throw new RuntimeException("Incident not found");
-        }
     }
 
     private IncidentResponseDto convertToResponseDto(Incident incident) {

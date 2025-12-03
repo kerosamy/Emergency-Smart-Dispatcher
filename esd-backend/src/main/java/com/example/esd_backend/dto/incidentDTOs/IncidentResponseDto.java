@@ -10,7 +10,6 @@ public class IncidentResponseDto {
     private Integer severity;
     private double latitude;
     private double longitude;
-    private String location;
     private String status;
     private Integer capacity;
     private Timestamp reportTime;
@@ -19,7 +18,7 @@ public class IncidentResponseDto {
     public IncidentResponseDto() {}
     
     public IncidentResponseDto(Integer id, Integer reporterId, String type, Integer severity,
-                              Integer latitude, Integer longitude, String location, String status, 
+                              Integer latitude, Integer longitude, String status, 
                               Integer capacity, Timestamp reportTime) {
         this.id = id;
         this.reporterId = reporterId;
@@ -27,7 +26,6 @@ public class IncidentResponseDto {
         this.severity = severity;
         this.latitude = latitude;
         this.longitude = longitude;
-        this.location = location;
         this.status = status;
         this.capacity = capacity;
         this.reportTime = reportTime;
@@ -105,14 +103,6 @@ public class IncidentResponseDto {
         this.capacity = capacity;
     }
     
-    public String getLocation() {
-        return location;
-    }
-    
-    public void setLocation(String location) {
-        this.location = location;
-    }
-    
     public Timestamp getReportTime() {
         return reportTime;
     }
@@ -139,7 +129,6 @@ public class IncidentResponseDto {
                 ", severity=" + severity +
                 ", latitude=" + latitude +
                 ", longitude=" + longitude +
-                ", location='" + location + '\'' +
                 ", status='" + status + '\'' +
                 ", capacity=" + capacity +
                 ", reportTime=" + reportTime +

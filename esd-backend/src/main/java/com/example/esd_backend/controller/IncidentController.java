@@ -22,13 +22,11 @@ public class IncidentController {
     private IncidentService incidentService;
         
     @PostMapping
-    public ResponseEntity<IncidentResponseDto> reportIncident(@RequestBody IncidentRequestDto request) {
+    public ResponseEntity<Void> reportIncident(@RequestBody IncidentRequestDto request) {
         try {
-            logger.info("Received incident report request: {}", request);
-            IncidentResponseDto response = incidentService.reportIncident(request);
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            incidentService.reportIncident(request);
+            return ResponseEntity.status(HttpStatus.CREATED).build();
         } catch (Exception e) {
-            logger.error("Error creating incident: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }
@@ -62,14 +60,14 @@ public class IncidentController {
     }
     
     @PostMapping("/{incidentId}/assign/{vehicleId}")
-    public ResponseEntity<AssignVehicleResponseDto> assignVehicleToIncident(
-            @PathVariable Long incidentId,
-            @PathVariable Long vehicleId) {
-        AssignVehicleResponseDto response = incidentService.assignVehicleToIncident(incidentId, vehicleId);
-        if (response.isSuccess()) {
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    public ResponseEntity<Void> assignVehicleToIncident(
+        @PathVariable Long incidentId,
+        @PathVariable Long vehicleId) {
+        try{
+            incidentService.assignVehicleToIncident(incidentId, vehicleId);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
         
