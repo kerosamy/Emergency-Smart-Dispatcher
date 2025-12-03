@@ -71,16 +71,14 @@ public class IncidentService {
         
         IncidentResponseDto dto = convertToResponseDto(incident);
         
-        // Set reporter name
         try {
             if (incident.getReporter() != null) {
-                dto.setReporterName(incident.getReporter().getName());
+                dto.setReporterName(incidentRepository.findReporterByIncidentId(incidentId));
             }
         } catch (Exception e) {
             logger.debug("No reporter for incident {}", incidentId);
         }
 
-        // Count assigned vehicles using the repository query
         try {
             Long count = incidentRepository.countAssignedVehiclesByIncidentId(incidentId);
             dto.setAssignedVehicleCount(count != null ? count.intValue() : 0);
@@ -102,7 +100,6 @@ public class IncidentService {
                 try {
                     dto.setReporterName(i.getReporter() != null ? i.getReporter().getName() : null);
                 } catch (Exception e) {
-                    // ignore
                 }
                 try {
                     Long count = incidentRepository.countAssignedVehiclesByIncidentId(i.getId());
@@ -112,56 +109,6 @@ public class IncidentService {
                 }
                 return dto;
             })
-            .collect(Collectors.toList());
-    }
-    
-    public List<IncidentResponseDto> getIncidentsByStatus(String status) {
-        IncidentStatus incidentStatus = IncidentStatus.valueOf(status.toLowerCase());
-        List<Incident> incidents = incidentRepository.findByStatusOrderByReportTimeDesc(incidentStatus);
-        logger.info("Retrieved {} incidents with status: {}", incidents.size(), status);
-        return incidents.stream()
-            .map(this::convertToResponseDto)
-            .collect(Collectors.toList());
-    }
-    
-    public List<IncidentResponseDto> getIncidentsByType(String type) {
-        IncidentType incidentType = IncidentType.valueOf(type.toLowerCase());
-        List<Incident> incidents = incidentRepository.findByTypeOrderByReportTimeDesc(incidentType);
-        logger.info("Retrieved {} incidents with type: {}", incidents.size(), type);
-        return incidents.stream()
-            .map(this::convertToResponseDto)
-            .collect(Collectors.toList());
-    }
-    
-    public List<IncidentResponseDto> getIncidentsByLocation(Double latitude, Double longitude) {
-        List<Incident> incidents = incidentRepository.findByLatitudeAndLongitudeOrderByReportTimeDesc(latitude, longitude);
-        logger.info("Retrieved {} incidents at location ({}, {})", incidents.size(), latitude, longitude);
-        return incidents.stream()
-            .map(this::convertToResponseDto)
-            .collect(Collectors.toList());
-    }
-    
-    public List<IncidentResponseDto> getUnassignedIncidents() {
-        List<Incident> incidents = incidentRepository.findUnassignedIncidents();
-        logger.info("Retrieved {} unassigned incidents", incidents.size());
-        return incidents.stream()
-            .map(this::convertToResponseDto)
-            .collect(Collectors.toList());
-    }
-    
-    public List<IncidentResponseDto> getActiveIncidents() {
-        List<Incident> incidents = incidentRepository.findActiveIncidents();
-        logger.info("Retrieved {} active incidents", incidents.size());
-        return incidents.stream()
-            .map(this::convertToResponseDto)
-            .collect(Collectors.toList());
-    }
-    
-    public List<IncidentResponseDto> getIncidentsByReporter(Long reporterId) {
-        List<Incident> incidents = incidentRepository.findByReporterIdOrderByReportTimeDesc(reporterId);
-        logger.info("Retrieved {} incidents for reporter {}", incidents.size(), reporterId);
-        return incidents.stream()
-            .map(this::convertToResponseDto)
             .collect(Collectors.toList());
     }
 

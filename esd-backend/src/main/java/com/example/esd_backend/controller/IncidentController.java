@@ -48,46 +48,6 @@ public class IncidentController {
         List<IncidentResponseDto> incidents = incidentService.getAllIncidents();
         return ResponseEntity.ok(incidents);
     }
-    
-    @GetMapping("/status/{status}")
-    public ResponseEntity<List<IncidentResponseDto>> getIncidentsByStatus(@PathVariable String status) {
-        try {
-            List<IncidentResponseDto> incidents = incidentService.getIncidentsByStatus(status);
-            return ResponseEntity.ok(incidents);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
-    }
-    
-    @GetMapping("/type/{type}")
-    public ResponseEntity<List<IncidentResponseDto>> getIncidentsByType(@PathVariable String type) {
-        try {
-            List<IncidentResponseDto> incidents = incidentService.getIncidentsByType(type);
-            return ResponseEntity.ok(incidents);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
-    }
-    
-    @GetMapping("/location")
-    public ResponseEntity<List<IncidentResponseDto>> getIncidentsByLocation(
-            @RequestParam Double latitude,
-            @RequestParam Double longitude) {
-        List<IncidentResponseDto> incidents = incidentService.getIncidentsByLocation(latitude, longitude);
-        return ResponseEntity.ok(incidents);
-    }
-    
-    @GetMapping("/unassigned")
-    public ResponseEntity<List<IncidentResponseDto>> getUnassignedIncidents() {
-        List<IncidentResponseDto> incidents = incidentService.getUnassignedIncidents();
-        return ResponseEntity.ok(incidents);
-    }
-    
-    @GetMapping("/active")
-    public ResponseEntity<List<IncidentResponseDto>> getActiveIncidents() {
-        List<IncidentResponseDto> incidents = incidentService.getActiveIncidents();
-        return ResponseEntity.ok(incidents);
-    }
         
     @PatchMapping("/{id}")
     public ResponseEntity<Void> updateIncident(
@@ -110,32 +70,6 @@ public class IncidentController {
             return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-        }
-    }
-    
-    @GetMapping("/reporter/{reporterId}")
-    public ResponseEntity<List<IncidentResponseDto>> getIncidentsByReporter(@PathVariable Long reporterId) {
-        List<IncidentResponseDto> incidents = incidentService.getIncidentsByReporter(reporterId);
-        return ResponseEntity.ok(incidents);
-    }
-        
-    @GetMapping("/count/status/{status}")
-    public ResponseEntity<Long> countIncidentsByStatus(@PathVariable String status) {
-        try {
-            Long count = incidentService.countIncidentsByStatus(status);
-            return ResponseEntity.ok(count);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
-    }
-    
-    @GetMapping("/count/type/{type}")
-    public ResponseEntity<Long> countIncidentsByType(@PathVariable String type) {
-        try {
-            Long count = incidentService.countIncidentsByType(type);
-            return ResponseEntity.ok(count);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
         

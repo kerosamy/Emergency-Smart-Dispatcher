@@ -12,19 +12,5 @@ import java.util.Optional;
 @Repository
 public interface AssignToRepository extends JpaRepository<AssignTo, Long> {
     
-    List<AssignTo> findByIncident(Incident incident);
-    
-    List<AssignTo> findByVehicle(Vehicle vehicle);
-    
     Optional<AssignTo> findByIncidentAndVehicle(Incident incident, Vehicle vehicle);
-    
-    boolean existsByIncidentAndVehicle(Incident incident, Vehicle vehicle);
-    
-    @Query("SELECT a.vehicle FROM AssignTo a WHERE a.incident = :incident")
-    List<Vehicle> findVehiclesByIncident(@Param("incident") Incident incident);
-    
-    @Query("SELECT a.incident FROM AssignTo a WHERE a.vehicle = :vehicle")
-    List<Incident> findIncidentsByVehicle(@Param("vehicle") Vehicle vehicle);
-    
-    Long countByIncident(Incident incident);
 }
