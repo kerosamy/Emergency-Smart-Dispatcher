@@ -1,151 +1,130 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
+import UserService from '../services/UserService';
 
 function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState(null)
   const navigate = useNavigate()
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setIsLoading(true)
-    setTimeout(() => {
-      console.log('Login:', { email, password })
+    setError(null)
+
+    try {
+      const token = await UserService.login(email, password)
+      if (token) navigate('/dashboard')
+    } catch (err) {
+      setError("Invalid email or password")
+    } finally {
       setIsLoading(false)
-      navigate('/dashboard')
-    }, 1500)
+    }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-900 via-red-800 to-gray-900 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-20 left-20 w-72 h-72 bg-red-500 rounded-full filter blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-20 w-96 h-96 bg-orange-500 rounded-full filter blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
-      </div>
+    <div className="min-h-screen flex items-center justify-center bg-black relative overflow-hidden">
+      
+      {/* Emergency blinking background blobs */}
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-red-600 rounded-full filter blur-3xl opacity-50 animate-ping-slow"></div>
+      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-600 rounded-full filter blur-3xl opacity-50 animate-ping-slow delay-500"></div>
+      
+      {/* Flashing diagonal stripes */}
+      <div className="absolute inset-0 bg-gradient-to-tr from-red-600 via-transparent to-blue-600 opacity-20 animate-shimmer"></div>
 
-      {/* Login Card */}
-      <div className="bg-gray-900 bg-opacity-90 backdrop-blur-lg rounded-2xl shadow-2xl p-8 w-full max-w-md border border-red-700 relative z-10">
-        {/* Emergency Icon */}
+      {/* Login card */}
+      <div className="relative z-10 w-full max-w-md p-10 bg-black/80 backdrop-blur-lg rounded-3xl border-2 border-red-500 shadow-2xl">
+        
+        {/* Alert Icon */}
         <div className="flex justify-center mb-6">
-          <div className="bg-gradient-to-br from-red-600 to-red-800 p-4 rounded-full shadow-lg animate-pulse">
-            <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          <div className="bg-red-600 p-5 rounded-full shadow-xl animate-pulse">
+            <svg className="w-14 h-14 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
             </svg>
           </div>
         </div>
 
         {/* Title */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">
-            EMERGENCY
-          </h1>
-          <div className="flex items-center justify-center gap-2 text-red-400">
-            <div className="w-2 h-2 bg-red-500 rounded-full animate-ping"></div>
-            <p className="text-sm font-semibold tracking-wider">DISPATCH SYSTEM</p>
-            <div className="w-2 h-2 bg-red-500 rounded-full animate-ping"></div>
-          </div>
+          <h1 className="text-4xl font-extrabold text-red-500 tracking-wide mb-2 animate-pulse">EMERGENCY</h1>
+          <p className="text-white font-semibold tracking-wide text-lg">DISPATCH CONTROL</p>
         </div>
 
-        <h2 className="text-xl font-semibold text-white mb-6">System Login</h2>
+        {/* Error */}
+        {error && <p className="text-yellow-400 mb-4 text-center font-bold animate-shake">{error}</p>}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Email Input */}
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-gray-300 mb-2 text-sm font-medium">Email Address</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </div>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition duration-200"
-                placeholder="operator@emergency.com"
-                required
-              />
-            </div>
+            <label className="block text-white/80 mb-2 font-medium">Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="operator@dispatch.com"
+              required
+              className="w-full px-4 py-3 rounded-xl bg-black/50 border border-red-500 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition"
+            />
           </div>
 
-          {/* Password Input */}
           <div>
-            <label className="block text-gray-300 mb-2 text-sm font-medium">Password</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-              </div>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition duration-200"
-                placeholder="••••••••"
-                required
-              />
-            </div>
+            <label className="block text-white/80 mb-2 font-medium">Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              required
+              className="w-full px-4 py-3 rounded-xl bg-black/50 border border-red-500 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition"
+            />
           </div>
 
-          {/* Remember & Forgot */}
-          <div className="flex items-center justify-between text-sm">
-            <label className="flex items-center text-gray-300 cursor-pointer">
-              <input type="checkbox" className="mr-2 rounded bg-gray-800 border-gray-600 text-red-600 focus:ring-red-500" />
-              Remember me
-            </label>
-            <a href="#" className="text-red-400 hover:text-red-300 transition">Forgot password?</a>
-          </div>
-
-          {/* Login Button */}
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-gradient-to-r from-red-600 to-red-700 text-white py-3 rounded-lg hover:from-red-700 hover:to-red-800 transition duration-200 font-bold text-lg shadow-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            className="w-full py-3 rounded-xl font-bold text-lg text-white bg-gradient-to-r from-red-600 to-blue-600 hover:from-blue-600 hover:to-red-600 shadow-xl transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
-              <div className="flex items-center justify-center">
-                <svg className="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
+              <div className="flex items-center justify-center gap-2 animate-pulse">
+                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
-                Authenticating...
+                ALERTING...
               </div>
             ) : (
-              'ACCESS SYSTEM'
+              "ACCESS CONTROL"
             )}
           </button>
         </form>
 
-        {/* Divider */}
-        <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-700"></div>
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-gray-900 text-gray-400">New Operator?</span>
-          </div>
-        </div>
-
-        {/* Sign Up Link */}
-        <Link 
-          to="/signup"
-          className="block w-full text-center border-2 border-red-600 text-red-400 py-3 rounded-lg hover:bg-red-600 hover:text-white transition duration-200 font-semibold"
-        >
-          Register for Access
-        </Link>
-
         {/* Footer */}
-        <p className="text-center text-gray-500 text-xs mt-6">
-          🚨 For authorized personnel only
-        </p>
+        <div className="mt-6 text-center text-white/50 text-sm">
+          &copy; {new Date().getFullYear()} Emergency Dispatch Control
+        </div>
       </div>
 
-      {/* Emergency stripe */}
-      <div className="fixed bottom-0 left-0 right-0 h-2 bg-gradient-to-r from-red-600 via-yellow-500 to-red-600 animate-pulse"></div>
+      {/* Custom Animations */}
+      <style>{`
+        @keyframes shimmer {
+          0% { background-position: -100% 0; }
+          100% { background-position: 100% 0; }
+        }
+        .animate-shimmer { 
+          background-size: 200% 100%; 
+          animation: shimmer 3s linear infinite; 
+        }
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          20%, 60% { transform: translateX(-4px); }
+          40%, 80% { transform: translateX(4px); }
+        }
+        .animate-shake { animation: shake 0.5s linear infinite; }
+        .animate-ping-slow { animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite; }
+      `}</style>
+
     </div>
   )
 }

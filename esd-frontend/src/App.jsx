@@ -1,27 +1,18 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import Login from './pages/Login'
-import Signup from './pages/Signup'
-import Dashboard from './pages/Dashboard'
-import Map from './pages/Map'
-import DispatchMap from './pages/DispatchMap'
-
-
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { routes } from "./routes";
+import Layout from "./Components/Layout";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Navigate to="/login" />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/map" element={<Map />} />
-        <Route path="/DispatchMap" element={<DispatchMap />} />
-
-
+        {routes.map(({ path, element, isProtected }) => {
+          const wrappedElement = isProtected ? <Layout>{element}</Layout> : element;
+          return <Route key={path} path={path} element={wrappedElement} />;
+        })}
       </Routes>
     </BrowserRouter>
-  )
+  );
 }
 
-export default App
+export default App;

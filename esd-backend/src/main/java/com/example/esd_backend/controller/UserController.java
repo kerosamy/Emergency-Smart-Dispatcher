@@ -1,16 +1,15 @@
 package com.example.esd_backend.controller;
 
-import com.example.esd_backend.dto.SignInRequestDto;
-import com.example.esd_backend.dto.SignUpUserRequestDto;
-import com.example.esd_backend.dto.UnassignedResponderDto;
-import com.example.esd_backend.dto.UserResponseDto;
+import com.example.esd_backend.dto.*;
 import com.example.esd_backend.service.UserService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/users")
 public class UserController {
     private final UserService userService;
 
@@ -18,18 +17,22 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping("/sign-in")
-    public UserResponseDto signInpDispatcher(@RequestBody SignInRequestDto signInUserRequestDto) {
-        return userService.signInDispatcher(signInUserRequestDto);
+    @PostMapping ("/sign-in")
+    public ResponseEntity<JwtResponseDto> signInpDispatcher(@RequestBody SignInRequestDto signInUserRequestDto) {
+        return ResponseEntity.ok(userService.signInDispatcher(signInUserRequestDto));
     }
 
-    @PostMapping("/sign-up")
-    public UserResponseDto signUpDispatcher(@RequestBody SignUpUserRequestDto signUpUserRequestDto) {
-        return userService.signUpDispatcher(signUpUserRequestDto);
+    @PostMapping("/add-user")
+    @PreAuthorize("hasRole('DISPATCHER')")
+    public ResponseEntity<Void> addUser(@RequestBody SignUpUserRequestDto signUpUserRequestDto) {
+        userService.addUser(signUpUserRequestDto);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/unassigned")
-    public List<UnassignedResponderDto> getUnassignedResponders() {
-        return userService.getUnassignedResponders();
+    @PreAuthorize("hasRole('DISPATCHER')")
+    public ResponseEntity<List<UnassignedResponderDto>> getUnassignedResponders() {
+        List<UnassignedResponderDto> responders = userService.getUnassignedResponders();
+        return ResponseEntity.ok(responders);
     }
 }

@@ -5,13 +5,13 @@ import com.example.esd_backend.service.IncidentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/incidents")
-@CrossOrigin(origins = "*")
+@RequestMapping("/incidents")
 public class IncidentController {
     
     
@@ -29,6 +29,7 @@ public class IncidentController {
     }
         
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('DISPATCHER')")
     public ResponseEntity<IncidentResponseDto> getIncidentById(@PathVariable Long id) {
         try {
             IncidentResponseDto response = incidentService.getIncidentById(id);
@@ -39,12 +40,14 @@ public class IncidentController {
     }
     
     @GetMapping
+    @PreAuthorize("hasRole('DISPATCHER')")
     public ResponseEntity<List<IncidentResponseDto>> getAllIncidents() {
         List<IncidentResponseDto> incidents = incidentService.getAllIncidents();
         return ResponseEntity.ok(incidents);
     }
         
     @PatchMapping("/{id}")
+    @PreAuthorize("hasRole('DISPATCHER')")
     public ResponseEntity<Void> updateIncident(
             @PathVariable Long id,
             @RequestBody UpdateIncidentDto request) {
@@ -57,6 +60,7 @@ public class IncidentController {
     }
     
     @PostMapping("/{incidentId}/assign/{vehicleId}")
+    @PreAuthorize("hasRole('DISPATCHER')")
     public ResponseEntity<Void> assignVehicleToIncident(
         @PathVariable Long incidentId,
         @PathVariable Long vehicleId) {
@@ -69,6 +73,7 @@ public class IncidentController {
     }
         
     @PatchMapping("/{id}/arrival")
+    @PreAuthorize("hasAnyRole('DISPATCHER' , 'RESPONDER')")
     public ResponseEntity<Void> confirmArrival(
             @PathVariable Long id,
             @RequestBody ConfirmArrivalRequestDTO request) {
@@ -81,6 +86,7 @@ public class IncidentController {
     }
     
     @PatchMapping("/{id}/resolve")
+    @PreAuthorize("hasAnyRole('DISPATCHER' , 'RESPONDER')")
     public ResponseEntity<Void> resolveIncident(
             @PathVariable Long id,
             @RequestBody ConfirmSolutionRequestDTO request) {
@@ -93,6 +99,7 @@ public class IncidentController {
     }
         
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('DISPATCHER')")
     public ResponseEntity<Void> deleteIncident(@PathVariable Long id) {
         try {
             incidentService.deleteIncident(id);

@@ -1,13 +1,11 @@
 package com.example.esd_backend.service;
 
-import com.example.esd_backend.dto.SignInRequestDto;
-import com.example.esd_backend.dto.SignUpUserRequestDto;
-import com.example.esd_backend.dto.UnassignedResponderDto;
-import com.example.esd_backend.dto.UserResponseDto;
+import com.example.esd_backend.dto.*;
 import com.example.esd_backend.mapper.UserMapper;
 import com.example.esd_backend.model.enums.Role;
 import com.example.esd_backend.model.User;
 import com.example.esd_backend.repository.UserRepository;
+import com.example.esd_backend.security.JwtService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,13 +15,15 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final JwtService jwtService;
 
-    public UserService(UserRepository userRepository , UserMapper userMapper) {
+    public UserService(UserRepository userRepository , UserMapper userMapper , JwtService jwtService) {
 
         this.userRepository = userRepository;
         this.userMapper = userMapper;
+        this.jwtService = jwtService;
     }
-    public UserResponseDto signInDispatcher (SignInRequestDto signInUserRequestDto) {
+    public JwtResponseDto signInDispatcher (SignInRequestDto signInUserRequestDto) {
 
         String email = signInUserRequestDto.getEmail();
         String password = signInUserRequestDto.getPassword();
@@ -33,9 +33,13 @@ public class UserService {
         if (!user.getPassword().equals(password)) {
             throw new RuntimeException("Incorrect password");
         }
-        return userMapper.toResponseDto(user);
+        if (!user.getRole().equals(Role.DISPATCHER)) {
+            throw new RuntimeException("User is not a dispatcher");
+        }
+
+        return new JwtResponseDto(jwtService.generateToken(user));
     }
-    public UserResponseDto signUpDispatcher(SignUpUserRequestDto signUpUserRequestDto) {
+    public void addUser(SignUpUserRequestDto signUpUserRequestDto) {
 
         // Check if email already exists
         if (userRepository.findByEmail(signUpUserRequestDto.getEmail()).isPresent()) {
@@ -44,11 +48,7 @@ public class UserService {
 
         User user = userMapper.toEntity(signUpUserRequestDto);
 
-        user.setRole(Role.DISPATCHER);
-
         userRepository.save(user);
-
-        return userMapper.toResponseDto(user);
     }
 
     public List<UnassignedResponderDto> getUnassignedResponders() {
