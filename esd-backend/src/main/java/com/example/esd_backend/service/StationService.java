@@ -25,12 +25,11 @@ public class StationService {
         stationRepository.InsertStation(station);
     }
 
-    public List<StationNameTypeDto> getAllStations() {
+    public List<StationDto> getAllStations() {
         List<Station> stations = stationRepository.GetAll();
         return stations.stream()
-                .map(s -> new StationNameTypeDto(s.getName(), s.getType()))
+                .map(StationMapper::toDto)
                 .toList();
-
     }
 
 }

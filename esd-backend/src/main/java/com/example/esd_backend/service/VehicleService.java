@@ -61,7 +61,7 @@ public class VehicleService {
             throw new RuntimeException("Vehicle already has a driver assigned");
         }
 
-        User user = userRepository.findById(vehicle.getDriver().getId())
+        User user = userRepository.findByName(name)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         if (user.getVehicle() != null) {
             throw new RuntimeException("Responder already assigned to a vehicle");
