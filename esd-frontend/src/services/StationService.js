@@ -21,22 +21,22 @@ const addStation = async (name, latitude, longitude, type) => {
   }
 };
 
-const getStations = async () => {
+
+const getAllStations = async () => {
   try {
     const token = UserService.getToken();
-    const response = await axios.get(`${API_BASE_URL}/getAllStations`, {
+    const response = await axios.get(`${API_BASE_URL}/all`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    return response.data; 
+    console.log(response.data);
+    return response.data; // assuming backend returns List<StationDto>
   } catch (error) {
-    console.error("Get stations error:", error.response?.data || error.message);
+    console.error("Get all stations error:", error.response?.data || error.message);
     throw error;
   }
 };
 
-
-
 export default {
   addStation,
-  getStations,
+  getAllStations, // export it
 };

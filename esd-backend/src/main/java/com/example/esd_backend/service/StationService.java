@@ -26,8 +26,11 @@ public class StationService {
     }
 
     public List<StationDto> getAllStations() {
-        return stationRepository.findAll().stream()
+        List<StationDto> hamada = stationRepository.findAll().stream()
                 .map(StationMapper::toDto)
                 .toList();
+        System.out.print(hamada);
+        return hamada;
     }
+
 }

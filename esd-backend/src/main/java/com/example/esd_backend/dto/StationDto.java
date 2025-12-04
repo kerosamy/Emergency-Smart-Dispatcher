@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class StationDto {
+    private long id;
     private String name;
     private Double latitude;
     private Double longitude;

@@ -21,6 +21,7 @@ class VehicleService {
       headers: { Authorization: `Bearer ${token}` },
     });
     console.log("All vehicles response data:", res.data);
+    
     return res.data; // List<VehicleListDto>
   }
 

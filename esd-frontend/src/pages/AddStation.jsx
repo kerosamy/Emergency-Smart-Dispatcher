@@ -1,5 +1,4 @@
-// src/pages/AddStation.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import StationService from "../services/StationService";
 
 export default function AddStation() {
@@ -8,20 +7,36 @@ export default function AddStation() {
   const [longitude, setLongitude] = useState("");
   const [type, setType] = useState("FIRE");
   const [message, setMessage] = useState("");
+  const [stations, setStations] = useState([]); // optional to store data
 
-const handleAddStation = async (e) => {
-  e.preventDefault();
-  try {
-    await StationService.addStation(name, parseFloat(latitude), parseFloat(longitude), type);
-    setMessage("Station added successfully!");
-    setName("");
-    setLatitude("");
-    setLongitude("");
-    setType("FIRE");
-  } catch (err) {
-    setMessage("Error adding station");
-  }
-};
+  // Fetch all stations when page loads
+  useEffect(() => {
+    const loadStations = async () => {
+      try {
+        const data = await StationService.getAllStations();
+        console.log("All stations:", data); // <-- check console
+        setStations(data); // optional, in case you want to display
+      } catch (err) {
+        console.error("Error fetching stations:", err);
+      }
+    };
+
+    loadStations();
+  }, []);
+
+  const handleAddStation = async (e) => {
+    e.preventDefault();
+    try {
+      await StationService.addStation(name, parseFloat(latitude), parseFloat(longitude), type);
+      setMessage("Station added successfully!");
+      setName("");
+      setLatitude("");
+      setLongitude("");
+      setType("FIRE");
+    } catch (err) {
+      setMessage("Error adding station");
+    }
+  };
 
   return (
     <div className="w-full h-screen relative bg-black overflow-hidden flex justify-center items-center">

@@ -15,6 +15,7 @@ public class StationMapper {
 
     public static StationDto toDto(Station entity) {
         return StationDto.builder()
+                .id(entity.getId())
                 .name(entity.getName())
                 .latitude(entity.getLatitude())
                 .longitude(entity.getLongitude())
