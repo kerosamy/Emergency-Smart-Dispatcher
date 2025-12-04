@@ -51,7 +51,7 @@ class IncidentService {
     const token = UserService.getToken();
     const res = await axios.post(
       `${API_URL}/${incidentId}/assign/${vehicleId}`,
-      {}, // empty body
+      {},
       {
         headers: { Authorization: `Bearer ${token}` },
       }
@@ -61,6 +61,14 @@ class IncidentService {
    async getReportedIncidents() {
     const token = UserService.getToken();
     const res = await axios.get(`${API_URL}/reported`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return res.data;
+  }
+
+  async getAssignments() {
+    const token = UserService.getToken();
+    const res = await axios.get(`${API_URL}/assignments`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     return res.data;

@@ -105,6 +105,16 @@ public class IncidentController {
         }
     }
 
+    @GetMapping("/assignments")
+    @PreAuthorize("hasAnyRole('DISPATCHER')")
+    public ResponseEntity<List<AssignmentResponseDTO>> getAllAssignments() {
+        try {
+            List<AssignmentResponseDTO> assignments = incidentService.getAllAssignments();
+            return ResponseEntity.ok(assignments);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
         
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('DISPATCHER')")
