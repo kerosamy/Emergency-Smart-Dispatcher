@@ -8,6 +8,8 @@ import AddVehicle from "./pages/AddVehicle";
 import AddIncident from "./pages/AddIncident";
 import Assign from "./pages/Assign";
 import AddStation from "./pages/AddStation";
+import MapView from "./pages/MapView";
+
 
 export const routes = [
   { path: "/", element: <Navigate to="/login" />, isProtected: false },
@@ -19,12 +21,13 @@ export const routes = [
   { path: "/add-incident", element: <AddIncident />, isProtected: true },
   { path: "/assign", element: <Assign />, isProtected: true },
   { path: "/add-station", element: <AddStation />, isProtected: true },
+  { path: "/MapView", element: <MapView />, isProtected: true }
 
 ];
 
 export const TopBarPages = [
   { name: "Dashboard", path: "/dashboard" },
-  { name: "Dispatch Map", path: "/DispatchMap" },
+  { name: "Map View", path: "/MapView" },
   { name: "Add User", path: "/add-user" },
   { name: "Add Vehicle", path: "/add-vehicle" },
   { name: "Add Incident", path: "/add-incident" },
