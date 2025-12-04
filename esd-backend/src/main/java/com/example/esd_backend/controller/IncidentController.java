@@ -45,6 +45,13 @@ public class IncidentController {
         List<IncidentResponseDto> incidents = incidentService.getAllIncidents();
         return ResponseEntity.ok(incidents);
     }
+
+    @GetMapping("/reported")
+    @PreAuthorize("hasRole('DISPATCHER')")
+    public ResponseEntity<List<IncidentResponseDto>> getReportedIncidents() {
+        List<IncidentResponseDto> incidents = incidentService.getReportedIncidents();
+        return ResponseEntity.ok(incidents);
+    }
         
     @PatchMapping("/{id}")
     @PreAuthorize("hasRole('DISPATCHER')")
@@ -75,10 +82,9 @@ public class IncidentController {
     @PatchMapping("/{id}/arrival")
     @PreAuthorize("hasAnyRole('DISPATCHER' , 'RESPONDER')")
     public ResponseEntity<Void> confirmArrival(
-            @PathVariable Long id,
-            @RequestBody ConfirmArrivalRequestDTO request) {
+            @PathVariable Long id) {
         try {
-            incidentService.confirmArrival(id, request);
+            incidentService.confirmArrival(id);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
@@ -88,10 +94,9 @@ public class IncidentController {
     @PatchMapping("/{id}/resolve")
     @PreAuthorize("hasAnyRole('DISPATCHER' , 'RESPONDER')")
     public ResponseEntity<Void> resolveIncident(
-            @PathVariable Long id,
-            @RequestBody ConfirmSolutionRequestDTO request) {
+            @PathVariable Long id) {
         try {
-            incidentService.resolveIncident(id, request);
+            incidentService.resolveIncident(id);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();

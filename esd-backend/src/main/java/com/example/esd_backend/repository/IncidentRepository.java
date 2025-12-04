@@ -15,6 +15,8 @@ public interface IncidentRepository extends JpaRepository<Incident, Long> {
         
     List<Incident> findAllByOrderByReportTimeDesc();
 
+    List<Incident> findByStatus(IncidentStatus status);
+
     @Query("SELECT i.reporter.name " +
        "FROM Incident i WHERE i.id = :incidentId")
     String findReporterByIncidentId(@Param("incidentId") Long incidentId);
