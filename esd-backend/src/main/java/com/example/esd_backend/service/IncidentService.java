@@ -53,12 +53,12 @@ public class IncidentService {
         User reporter = userRepository.findById(Long.valueOf(request.getReporterId())).orElseThrow(() -> new RuntimeException("Reporter not found"));
         incident.setReporter(reporter);
         
-        incidentRepository.save(incident);        
+        incidentRepository.insertIncident(incident);        
 }
     
     
     public IncidentResponseDto getIncidentById(Long incidentId) {
-        Incident incident = incidentRepository.findById(incidentId).get();
+        Incident incident = incidentRepository.SearchId(incidentId);
         
         IncidentResponseDto dto = convertToResponseDto(incident);
         dto.setReporterName(incidentRepository.findReporterByIncidentId(incidentId));

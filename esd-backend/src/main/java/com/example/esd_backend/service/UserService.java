@@ -48,7 +48,7 @@ public class UserService {
 
         User user = userMapper.toEntity(signUpUserRequestDto);
 
-        userRepository.save(user);
+        userRepository.insertUser(user);
     }
 
     public List<UnassignedResponderDto> getUnassignedResponders() {

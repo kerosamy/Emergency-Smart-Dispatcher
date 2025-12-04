@@ -43,7 +43,7 @@ public class VehicleService {
     }
 
     public VehicleAssignmentDto assignResponder(Long vehicleId, String name) {
-        Vehicle vehicle =vehicleRepository.findById(vehicleId)
+        Vehicle vehicle =vehicleRepository.SearchId(vehicleId)
                 .orElseThrow(() -> new RuntimeException("Vehicle not found"));
         if (vehicle.getDriver() != null) {
             throw new RuntimeException("Vehicle already has a driver assigned");

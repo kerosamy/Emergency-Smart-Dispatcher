@@ -17,17 +17,19 @@ public class StationService {
         this.stationRepository = stationRepository;
     }
 
-    public Station addStation(StationDto stationDto) {
+    public void addStation(StationDto stationDto) {
         if (stationRepository.findByName(stationDto.getName()).isPresent()) {
             throw  new RuntimeException("Station with the same name exists");
         }
         Station station = StationMapper.toEntity(stationDto);
-        return stationRepository.save(station);
+        stationRepository.InsertStation(station);
     }
 
     public List<StationNameTypeDto> getAllStations() {
-        return stationRepository.findAll().stream()
+        List<Station> stations = stationRepository.GetAll();
+        return stations.stream()
                 .map(s -> new StationNameTypeDto(s.getName(), s.getType()))
                 .toList();
+
     }
 }
