@@ -17,4 +17,6 @@ public class VehicleListDto {
     private String stationName;
     private String vehicleType;
     private String responder;
+    private Double stationLatitude;
+    private Double stationLongitude;
 }

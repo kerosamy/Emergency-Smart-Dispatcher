@@ -12,4 +12,13 @@ public class StationMapper {
                 .type(dto.getType())
                 .build();
     }
+
+    public static StationDto toDto(Station entity) {
+        return StationDto.builder()
+                .name(entity.getName())
+                .latitude(entity.getLatitude())
+                .longitude(entity.getLongitude())
+                .type(entity.getType())
+                .build();
+    }
 }
