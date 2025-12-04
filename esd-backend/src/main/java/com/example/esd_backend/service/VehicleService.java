@@ -13,6 +13,7 @@ import com.example.esd_backend.repository.StationRepository;
 import com.example.esd_backend.repository.UserRepository;
 import com.example.esd_backend.repository.VehicleRepository;
 
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -87,12 +88,19 @@ public class VehicleService {
         }
         return result;
     }
+
+    @Transactional
     public void deleteVehicle(Long id) {
         Vehicle vehicle = vehicleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Vehicle not found"));
         Station station = vehicle.getStation();
         if (station != null) {
-            station.getVehicles().remove(vehicle);
+            station.getVehicles().removeIf(v -> v.getId().equals(id));
+        }
+        User driver = vehicle.getDriver();
+        if (driver != null) {
+            driver.setVehicle(null);
+            vehicle.setDriver(null); 
         }
         vehicleRepository.delete(vehicle);
     }
