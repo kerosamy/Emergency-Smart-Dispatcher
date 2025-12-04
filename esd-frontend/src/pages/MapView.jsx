@@ -55,8 +55,8 @@ export default function MapView() {
             id: v.id,
             name: v.vehicleType || `Vehicle ${v.id}`,
             // Ensure numbers with parseFloat, fallback to default if NaN
-            lat: parseFloat(v.latitude) || 30.048, 
-            lng: parseFloat(v.longitude) || 31.235,
+            lat: parseFloat(v.stationLatitude) , 
+            lng: parseFloat(v.stationLongitude) + 0.2,
             type: "vehicle",
           }))
           // Double safety: Filter out if something went wrong and we don't want defaults
@@ -72,8 +72,8 @@ export default function MapView() {
             id: s.id,
             name: s.name,
             // FIX: Add parseFloat and Fallback logic here
-            lat: parseFloat(s.latitude) ||31, 
-            lng: parseFloat(s.longitude) ||31.12,
+            lat: parseFloat(s.latitude) || 30.048, 
+            lng: parseFloat(s.longitude) || 30.048,
             type: "station",
           }))
           // CRITICAL: Filter out stations with missing/null coordinates
