@@ -12,7 +12,12 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "confirm")
+@Table(name = "confirm",
+    indexes = {
+        @Index(name = "idx_solved_by_incident_id", columnList = "incident_id"),
+        @Index(name = "idx_solved_by_user_id", columnList = "user_id"),
+    }
+)
 @IdClass(SolvedBy.SolvedById.class)
 public class SolvedBy {
 

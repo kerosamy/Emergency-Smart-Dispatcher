@@ -115,7 +115,7 @@ public class IncidentService {
 
     @Transactional
     public void updateIncident(Long incidentId, UpdateIncidentDto request) {
-        Incident incident = incidentRepository.findById(incidentId).get();
+        Incident incident = incidentRepository.SearchId(incidentId);
 
         if (request.getSeverity() != null) {
             incident.setSeverity(request.getSeverity());
@@ -132,48 +132,29 @@ public class IncidentService {
 
     @Transactional
     public void assignVehicleToIncident(Long incidentId, Long vehicleId) {
-        Incident incident = incidentRepository.findById(incidentId)
-                .orElseThrow(() -> new RuntimeException("Incident not found"));
-
-        Vehicle vehicle = vehicleRepository.findById(vehicleId)
-                .orElseThrow(() -> new RuntimeException("Vehicle not found"));
-
-        // Check if the vehicle type matches the incident type
-        if (!isVehicleTypeCompatible(incident.getType(), vehicle.getStationType())) {
-            throw new RuntimeException("Vehicle type is not compatible with incident type");
-        }
-
-        if (vehicle.getVehicleStatus() != VehicleStatus.AVAILABLE) {
-            logger.warn("Vehicle {} is not available. Status: {}", vehicle.getId(), vehicle.getVehicleStatus());
-        }
-
-        vehicle.setVehicleStatus(VehicleStatus.BUSY);
-        vehicleRepository.save(vehicle);
-
-        AssignTo assignTo = new AssignTo();
-        assignTo.setIncident(incident);
-        assignTo.setVehicle(vehicle);
-        assignTo.setAssignTime(LocalDateTime.now());
-        assignToRepository.save(assignTo);
-
-        if (vehicle.getDriver() != null) {
-            SolvedBy solvedBy = new SolvedBy();
-            solvedBy.setIncident(incident);
-            solvedBy.setUser(vehicle.getDriver());
-            solvedByRepository.save(solvedBy);
-        }
-
-        incident.setStatus(IncidentStatus.DISPATCHED);
-        incidentRepository.save(incident);
-    }
-
-
-    private boolean isVehicleTypeCompatible(IncidentType incidentType, StationType vehicleStationType) {
-        return switch (incidentType) {
-            case FIRE -> vehicleStationType == StationType.FIRE;
-            case MEDICAL -> vehicleStationType == StationType.MEDICAL;
-            case CRIME -> vehicleStationType == StationType.POLICE;
-        };
+            Incident incident = incidentRepository.SearchId(incidentId);
+            
+            Vehicle vehicle = vehicleRepository.findById(vehicleId).get();
+            
+            if (vehicle.getVehicleStatus() != VehicleStatus.AVAILABLE) {
+                logger.warn("Vehicle {} is not available. Status: {}", vehicle.getId(), vehicle.getVehicleStatus());
+            }
+            
+            AssignTo assignTo = new AssignTo();
+            assignTo.setIncident(incident);
+            assignTo.setVehicle(vehicle);
+            assignTo.setAssignTime(LocalDateTime.now());
+            assignToRepository.save(assignTo);
+            
+            if (vehicle.getDriver() != null) {
+                SolvedBy solvedBy = new SolvedBy();
+                solvedBy.setIncident(incident);
+                solvedBy.setUser(vehicle.getDriver());
+                solvedByRepository.save(solvedBy);
+            }
+            
+            incident.setStatus(IncidentStatus.DISPATCHED);
+            incidentRepository.save(incident);
     }
     
     
