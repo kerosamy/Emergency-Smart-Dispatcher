@@ -220,6 +220,11 @@ public class IncidentService {
             incidentRepository.deleteById(incidentId);
     }
 
+    @Transactional
+    public List<AssignmentResponseDTO> getAllAssignments() {
+        return assignToRepository.findAllAssignments();
+    }
+
     private IncidentResponseDto convertToResponseDto(Incident incident) {
         return IncidentMapper.convertToResponseDto(incident);
     }
