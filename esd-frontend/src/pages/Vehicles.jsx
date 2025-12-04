@@ -36,7 +36,7 @@ export default function Vehicles() {
 
   const fetchStations = async () => {
     try {
-      const data = await StationService.getStations(); // API should return [{name, ...}]
+      const data = await StationService.getAllStations(); // API should return [{name, ...}]
       setStations(data);
     } catch (err) {
       console.error("Error fetching stations", err);
