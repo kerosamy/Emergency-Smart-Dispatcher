@@ -31,8 +31,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
        nativeQuery = true)
     Optional<User> findByName(String name);
     @Transactional
-    @Query(value = "SELECT * FROM user LEFT JOIN vehicle ON user.id = vehicle.user_id WHERE role = :role AND vehicle.id IS NULL", 
+   @Query(value = "SELECT * FROM user WHERE role = :role AND id NOT IN (SELECT user_id FROM vehicle WHERE user_id IS NOT NULL)", 
        nativeQuery = true)
-    List<User> findByRoleAndVehicleIsNull(Role role);
+   List<User> findByRoleAndVehicleIsNull(@Param("role") String role);
 
 }

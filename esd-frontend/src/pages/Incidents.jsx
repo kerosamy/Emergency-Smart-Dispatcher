@@ -56,7 +56,6 @@ export default function Incidents() {
 
   // Update incident status and send responder email
   const handleUpdateIncident = async () => {
-    if (!selectedIncident || !responderEmail) return;
 
     try {
       if (selectedIncident.status === "ARRIVED") {

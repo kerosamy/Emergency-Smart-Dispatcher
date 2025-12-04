@@ -16,6 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.Console;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -169,7 +170,7 @@ public class IncidentService {
                 .orElseThrow(() -> new RuntimeException("User not assigned to this incident"));
         
         solvedBy.setArrivalTime(LocalDateTime.now());
-        solvedByRepository.save(solvedBy);
+        solvedByRepository.UpdateArrivalTime(solvedBy);
         
     }
     

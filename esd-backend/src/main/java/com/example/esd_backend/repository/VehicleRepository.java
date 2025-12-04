@@ -18,5 +18,6 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     @Query(value = "SELECT * FROM vehicle WHERE user_id IS NULL", 
        nativeQuery = true)
     List<Vehicle> findByDriverIsNull();
+    
     List<Vehicle> findByVehicleStatus(VehicleStatus status);
 }
