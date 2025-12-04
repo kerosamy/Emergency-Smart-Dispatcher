@@ -20,8 +20,8 @@ public class StationController {
 
     @PostMapping("/add")
     @PreAuthorize("hasRole('DISPATCHER')")
-    public Station addStation(@RequestBody StationDto stationDto) {
-        return stationService.addStation(stationDto);
+    public void addStation(@RequestBody StationDto stationDto) {
+        stationService.addStation(stationDto);
     }
 
     @GetMapping("/all")

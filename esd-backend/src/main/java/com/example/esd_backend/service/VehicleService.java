@@ -54,14 +54,14 @@ public class VehicleService {
                 .toList();
     }
 
-    public VehicleAssignmentDto assignResponder(Long vehicleId, Long responderID) {
-        Vehicle vehicle =vehicleRepository.findById(vehicleId)
+    public VehicleAssignmentDto assignResponder(Long vehicleId, String name) {
+        Vehicle vehicle = vehicleRepository.SearchId(vehicleId)
                 .orElseThrow(() -> new RuntimeException("Vehicle not found"));
         if (vehicle.getDriver() != null) {
             throw new RuntimeException("Vehicle already has a driver assigned");
         }
 
-        User user = userRepository.findById(responderID)
+        User user = userRepository.findById(vehicle.getDriver().getId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
         if (user.getVehicle() != null) {
             throw new RuntimeException("Responder already assigned to a vehicle");
