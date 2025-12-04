@@ -4,6 +4,7 @@ import com.example.esd_backend.dto.StationDto;
 import com.example.esd_backend.dto.StationNameTypeDto;
 import com.example.esd_backend.model.Station;
 import com.example.esd_backend.service.StationService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,7 +27,8 @@ public class StationController {
 
     @GetMapping("/getAllStations")
     @PreAuthorize("hasRole('DISPATCHER')")
-    public List<StationNameTypeDto> getAllStations() {
-        return stationService.getAllStations();
+    public ResponseEntity<List<StationDto>> getAllStations() {
+        List<StationDto> stations = stationService.getAllStations();
+        return ResponseEntity.ok(stations);
     }
 }
