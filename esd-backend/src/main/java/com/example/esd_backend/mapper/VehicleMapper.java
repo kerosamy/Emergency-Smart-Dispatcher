@@ -20,6 +20,8 @@ public class VehicleMapper {
                 .capacity(entity.getCapacity())
                 .vehicleStatus(entity.getVehicleStatus())
                 .stationName(entity.getStation().getName())
+                .stationLatitude(entity.getStation().getLatitude())
+                .stationLongitude(entity.getStation().getLongitude())
                 .vehicleType(entity.getStationType().toString())
                 .responder(entity.getDriver() != null ? entity.getDriver().getEmail() : null)
                 .build();

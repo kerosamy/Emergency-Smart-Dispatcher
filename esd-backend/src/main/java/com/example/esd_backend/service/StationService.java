@@ -25,9 +25,9 @@ public class StationService {
         return stationRepository.save(station);
     }
 
-    public List<StationNameTypeDto> getAllStations() {
+    public List<StationDto> getAllStations() {
         return stationRepository.findAll().stream()
-                .map(s -> new StationNameTypeDto(s.getName(), s.getType()))
+                .map(StationMapper::toDto)
                 .toList();
     }
 }
