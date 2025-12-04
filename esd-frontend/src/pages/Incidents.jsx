@@ -14,8 +14,11 @@ export default function Incidents() {
   const [longitude, setLongitude] = useState("");
   const [capacity, setCapacity] = useState(0);
 
-  // Track if we are editing
+  // Edit mode
   const [isEditing, setIsEditing] = useState(false);
+
+  // NEW — responder email
+  const [responderEmail, setResponderEmail] = useState("");
 
   useEffect(() => {
     loadIncidents();
@@ -27,14 +30,13 @@ export default function Incidents() {
       .catch((err) => console.error(err));
   };
 
-  // Row click opens modal in edit mode
   const handleRowClick = (incident) => {
     setSelectedIncident(incident);
     setIsEditing(true);
+    setResponderEmail(""); // reset email
     setShowModal(true);
   };
 
-  // Add new incident
   const handleAddIncident = async (e) => {
     e.preventDefault();
     try {
@@ -52,17 +54,17 @@ export default function Incidents() {
     }
   };
 
-  // Update incident status
+  // Update incident status and send responder email
   const handleUpdateIncident = async () => {
-    if (!selectedIncident) return;
+    if (!selectedIncident || !responderEmail) return;
 
-    const dto = { status: selectedIncident.status };
     try {
-      if (dto.status === "DISPATCHED") {
-        await IncidentService.confirmArrival(selectedIncident.id);
-      } else if (dto.status === "RESOLVED") {
-        await IncidentService.resolveIncident(selectedIncident.id);
+      if (selectedIncident.status === "ARRIVED") {
+        await IncidentService.confirmArrival(selectedIncident.id, responderEmail);
+      } else if (selectedIncident.status === "RESOLVED") {
+        await IncidentService.resolveIncident(selectedIncident.id, responderEmail);
       }
+
       closeModal();
     } catch (err) {
       console.error(err);
@@ -73,11 +75,14 @@ export default function Incidents() {
     setShowModal(false);
     setIsEditing(false);
     setSelectedIncident(null);
+    setResponderEmail("");
+
     setType("");
     setSeverity(1);
     setLatitude("");
     setLongitude("");
     setCapacity(0);
+
     loadIncidents();
   };
 
@@ -93,7 +98,7 @@ export default function Incidents() {
         <IncidentTable
           items={incidents}
           selectedId={selectedIncident?.id}
-          onSelect={handleRowClick} // <-- use handleRowClick here
+          onSelect={handleRowClick}
         />
       </div>
 
@@ -113,8 +118,10 @@ export default function Incidents() {
               {isEditing ? "Edit Incident Status" : "Add Incident"}
             </h2>
 
+            {/* EDIT INCIDENT */}
             {isEditing ? (
               <div className="space-y-4">
+                {/* Status Dropdown */}
                 <select
                   className="w-full p-3 rounded-xl bg-black/50 border border-red-500 text-white"
                   value={selectedIncident.status}
@@ -126,16 +133,27 @@ export default function Incidents() {
                   }
                   required
                 >
-                  <option value="REPORTED">Reported</option>
-                  <option value="DISPATCHED">Dispatched</option>
+                  <option value="ARRIVED">Arrived</option>
                   <option value="RESOLVED">Resolved</option>
                 </select>
+
+                {/* NEW - Responder Email Field */}
+                <input
+                  type="email"
+                  className="w-full p-3 rounded-xl bg-black/50 border border-red-500 text-white"
+                  placeholder="Responder Email"
+                  value={responderEmail}
+                  onChange={(e) => setResponderEmail(e.target.value)}
+                  required
+                />
+
                 <button
                   onClick={handleUpdateIncident}
                   className="w-full py-3 rounded-xl font-bold bg-red-600 hover:bg-red-700 text-white"
                 >
                   Update Status
                 </button>
+
                 <button
                   type="button"
                   onClick={closeModal}
@@ -145,8 +163,8 @@ export default function Incidents() {
                 </button>
               </div>
             ) : (
+              // ADD INCIDENT FORM
               <form className="space-y-4" onSubmit={handleAddIncident}>
-                {/* Type */}
                 <select
                   className="w-full p-3 rounded-xl bg-black/50 border border-red-500 text-white"
                   value={type}
@@ -160,7 +178,7 @@ export default function Incidents() {
                   <option value="MEDICAL">Medical</option>
                   <option value="CRIME">Crime</option>
                 </select>
-                {/* Severity */}
+
                 <input
                   type="number"
                   className="w-full p-3 rounded-xl bg-black/50 border border-red-500 text-white"
@@ -171,7 +189,7 @@ export default function Incidents() {
                   max={5}
                   required
                 />
-                {/* Latitude */}
+
                 <input
                   type="number"
                   step="0.00001"
@@ -181,7 +199,7 @@ export default function Incidents() {
                   onChange={(e) => setLatitude(e.target.value)}
                   required
                 />
-                {/* Longitude */}
+
                 <input
                   type="number"
                   step="0.00001"
@@ -191,7 +209,7 @@ export default function Incidents() {
                   onChange={(e) => setLongitude(e.target.value)}
                   required
                 />
-                {/* Capacity */}
+
                 <input
                   type="number"
                   className="w-full p-3 rounded-xl bg-black/50 border border-red-500 text-white"
@@ -199,9 +217,11 @@ export default function Incidents() {
                   value={capacity}
                   onChange={(e) => setCapacity(e.target.value)}
                 />
+
                 <button className="w-full py-3 rounded-xl font-bold bg-red-600 hover:bg-red-700 text-white">
                   Add Incident
                 </button>
+
                 <button
                   type="button"
                   onClick={closeModal}
@@ -215,7 +235,6 @@ export default function Incidents() {
         </div>
       )}
 
-      {/* Animations */}
       <style>{`
         @keyframes pulse-slow {
           0%, 100% { opacity: 1; transform: scale(1); }
