@@ -2,8 +2,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Dashboard from './pages/Dashboard'
-import Map from './pages/Map'
 import DispatchMap from './pages/DispatchMap'
+import MapView from './pages/MapView'
 
 
 
@@ -17,6 +17,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/map" element={<Map />} />
         <Route path="/DispatchMap" element={<DispatchMap />} />
+        <Route path="/MapView" element={<MapView />} />
 
 
       </Routes>

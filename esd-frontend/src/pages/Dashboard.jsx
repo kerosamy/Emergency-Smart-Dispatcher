@@ -361,7 +361,7 @@ function Dashboard() {
         {/* --- NEW MAP SECTION --- */}
         <div className="mt-8">
           <button 
-            onClick={() => navigate('/DispatchMap')}
+            onClick={() => navigate('/MapView')}
             className="w-full bg-gradient-to-r from-indigo-600 to-purple-700 hover:from-indigo-500 hover:to-purple-600 text-white p-6 rounded-xl shadow-lg border border-indigo-500 transform hover:scale-[1.01] transition duration-200 flex items-center justify-center gap-4 group"
           >
             <div className="bg-indigo-800 p-3 rounded-full group-hover:bg-indigo-700 transition duration-200">
