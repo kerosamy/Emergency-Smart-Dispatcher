@@ -24,7 +24,7 @@ public class StationController {
         return stationService.addStation(stationDto);
     }
 
-    @GetMapping("/getAllStations")
+    @GetMapping("/all")
     @PreAuthorize("hasRole('DISPATCHER')")
     public ResponseEntity<List<StationDto>> getAllStations() {
         List<StationDto> stations = stationService.getAllStations();

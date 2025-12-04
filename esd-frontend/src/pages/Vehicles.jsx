@@ -48,6 +48,11 @@ export default function Vehicles() {
       .then((data) => setVehicles(data))
       .catch((err) => console.error(err));
   };
+  
+    useEffect(() => {
+    loadVehicles();
+  }, []);
+
 
 
   const handleAddVehicle = async (e) => {
