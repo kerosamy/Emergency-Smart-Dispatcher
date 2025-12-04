@@ -10,8 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class IncidentRequestDto {
-    
-    private Integer reporterId;
+
     private String type;
     
     @Builder.Default

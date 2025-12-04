@@ -31,7 +31,7 @@ public class VehicleController {
 
     @GetMapping("/unassigned")
     @PreAuthorize("hasRole('DISPATCHER')")
-    public ResponseEntity<List<UnassignedVehicleDto>>  getUnassignedVehicles() {
+    public ResponseEntity<List<UnassignedVehicleDto>> getUnassignedVehicles() {
         return ResponseEntity.ok(vehicleService.getUnassignedVehicles());
     }
 
@@ -47,6 +47,12 @@ public class VehicleController {
     @PreAuthorize("hasRole('DISPATCHER')")
     public ResponseEntity<List<VehicleListDto>>  getAllVehicles() {
         return ResponseEntity.ok(vehicleService.getAllVehicles()) ;
+    }
+
+    @GetMapping("/available")
+    @PreAuthorize("hasRole('DISPATCHER')")
+    public ResponseEntity<List<VehicleListDto>> getAvailableVehicles() {
+        return ResponseEntity.ok(vehicleService.getAvailableVehicles());
     }
 
 }

@@ -16,6 +16,7 @@ class VehicleService {
 
   async getAllVehicles() {
     const token = UserService.getToken();
+    console.log("Fetching all vehicles with token:", token);
     const res = await axios.get(`${API_URL}/all`, {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -45,6 +46,13 @@ class VehicleService {
       headers: { Authorization: `Bearer ${token}` },
     });
 
+    return res.data;
+  }
+    async getAvailableVehicles() {
+    const token = UserService.getToken();
+    const res = await axios.get(`${API_URL}/available`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
     return res.data;
   }
 }

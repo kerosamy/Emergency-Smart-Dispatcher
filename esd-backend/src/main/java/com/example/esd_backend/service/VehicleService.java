@@ -8,6 +8,7 @@ import com.example.esd_backend.mapper.VehicleMapper;
 import com.example.esd_backend.model.Station;
 import com.example.esd_backend.model.User;
 import com.example.esd_backend.model.Vehicle;
+import com.example.esd_backend.model.enums.VehicleStatus;
 import com.example.esd_backend.repository.StationRepository;
 import com.example.esd_backend.repository.UserRepository;
 import com.example.esd_backend.repository.VehicleRepository;
@@ -66,6 +67,14 @@ public class VehicleService {
     public List<VehicleListDto> getAllVehicles() {
         List<VehicleListDto> result = new ArrayList<>();
         for (Vehicle vehicle : vehicleRepository.findAll()){
+            result.add(VehicleMapper.toListDto(vehicle));
+        }
+        return result;
+    }
+
+    public List<VehicleListDto> getAvailableVehicles(){
+        List<VehicleListDto> result = new ArrayList<>();
+        for (Vehicle vehicle : vehicleRepository.findByVehicleStatus(VehicleStatus.AVAILABLE)){
             result.add(VehicleMapper.toListDto(vehicle));
         }
         return result;

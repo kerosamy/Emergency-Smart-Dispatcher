@@ -1,20 +1,60 @@
 // src/pages/Assign.jsx
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
+import IncidentService from "../services/IncidentService";
+import VehicleService from "../services/VehicleService";
+import IncidentTable from "../Components/IncidentTable";
+import VehicleTable from "../Components/VehicleTable"; // create a similar table component for vehicles
+import UserService from "../services/UserService";
 
 export default function Assign() {
-  const [incidentId, setIncidentId] = useState("");
-  const [vehicleId, setVehicleId] = useState("");
+  const [incidents, setIncidents] = useState([]);
+  const [vehicles, setVehicles] = useState([]);
+  const [selectedIncident, setSelectedIncident] = useState(null);
+  const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [message, setMessage] = useState("");
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const token = UserService.getToken();
+  const headers = { Authorization: `Bearer ${token}` };
+
+  // Load incidents and vehicles
+ useEffect(() => {
+    loadIncidents();
+    loadVehicles();
+  }, []);
+
+  const loadIncidents = async () => {
     try {
-      const res = await axios.post("http://localhost:8080/assign", {
-        incidentId,
-        vehicleId,
-      });
+      const data = await IncidentService.getReportedIncidents();
+      setIncidents(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const loadVehicles = async () => {
+    try {
+      const data = await VehicleService.getAvailableVehicles();
+      setVehicles(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleAssign = async () => {
+    if (!selectedIncident || !selectedVehicle) {
+      setMessage("Please select both an incident and a vehicle.");
+      return;
+    }
+
+    try {
+      // Use backend path variables
+      await IncidentService.assignVehicle(selectedIncident.id, selectedVehicle.id);
       setMessage("Vehicle assigned successfully!");
+      loadIncidents();
+      loadVehicles();
+      setSelectedIncident(null);
+      setSelectedVehicle(null);
     } catch (err) {
       console.error(err);
       setMessage("Error assigning vehicle");
@@ -22,30 +62,41 @@ export default function Assign() {
   };
 
   return (
-    <div className="p-6 max-w-lg mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Assign Vehicle to Incident</h1>
-      {message && <p className="mb-4 text-green-400">{message}</p>}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          className="w-full p-2 border rounded"
-          placeholder="Incident ID"
-          type="number"
-          value={incidentId}
-          onChange={(e) => setIncidentId(e.target.value)}
-          required
-        />
-        <input
-          className="w-full p-2 border rounded"
-          placeholder="Vehicle ID"
-          type="number"
-          value={vehicleId}
-          onChange={(e) => setVehicleId(e.target.value)}
-          required
-        />
-        <button className="bg-red-700 text-white py-2 px-4 rounded hover:bg-red-800">
-          Assign Vehicle
-        </button>
-      </form>
+   <div className="w-full h-screen relative bg-black overflow-hidden flex flex-col justify-start items-center p-6">
+  <h1 className="text-3xl font-bold text-red-400 mb-6">Assign Vehicle to Incident</h1>
+
+  {message && <p className="mb-4 text-green-400">{message}</p>}
+
+  <div className="flex flex-col md:flex-row gap-4 w-full max-w-6xl items-start">
+    {/* Incidents Table */}
+    <div className="flex-1 min-w-0">
+      <h2 className="text-xl font-bold text-red-400 mb-2">Incidents</h2>
+      <IncidentTable
+        items={incidents}
+        selectedId={selectedIncident?.id}
+        onSelect={setSelectedIncident}
+      />
     </div>
+
+    {/* Vehicles Table */}
+    <div className="flex-1 min-w-0">
+      <h2 className="text-xl font-bold text-red-400 mb-2">Available Vehicles</h2>
+      <VehicleTable
+        items={vehicles}
+        selectedId={selectedVehicle?.id}
+        onSelect={setSelectedVehicle}
+      />
+    </div>
+  </div>
+
+  {/* Assign Button */}
+  <button
+    onClick={handleAssign}
+    className="mt-6 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl font-bold"
+  >
+    Assign Vehicle
+  </button>
+</div>
+
   );
 }
