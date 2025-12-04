@@ -20,28 +20,38 @@ class IncidentService {
     return res.data;
   }
 
-  async confirmArrival(id) {
+  async confirmArrival(id, userEmail) {
     const token = UserService.getToken();
-    const res = await axios.patch(`${API_URL}/${id}/arrival`, null, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const res = await axios.patch(
+      `${API_URL}/${id}/arrival`,
+      null,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { userEmail },  // <-- HERE
+      }
+    );
     return res.data;
   }
 
-  async resolveIncident(id) {
+  async resolveIncident(id, userEmail) {
     const token = UserService.getToken();
-    console.log("Resolving incident with token:", token);
-    const res = await axios.patch(`${API_URL}/${id}/resolve`, null, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const res = await axios.patch(
+      `${API_URL}/${id}/resolve`,
+      null,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { userEmail },  // <-- HERE
+      }
+    );
     return res.data;
   }
+
 
   async assignVehicle(incidentId, vehicleId) {
     const token = UserService.getToken();
     const res = await axios.post(
       `${API_URL}/${incidentId}/assign/${vehicleId}`,
-      {}, // empty body
+      {},
       {
         headers: { Authorization: `Bearer ${token}` },
       }
@@ -51,6 +61,14 @@ class IncidentService {
    async getReportedIncidents() {
     const token = UserService.getToken();
     const res = await axios.get(`${API_URL}/reported`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return res.data;
+  }
+
+  async getAssignments() {
+    const token = UserService.getToken();
+    const res = await axios.get(`${API_URL}/assignments`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     return res.data;

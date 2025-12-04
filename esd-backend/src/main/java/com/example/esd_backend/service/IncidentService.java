@@ -159,12 +159,10 @@ public class IncidentService {
     
     
     @Transactional
-    public void confirmArrival(Long incidentId) {
+    public void confirmArrival(Long incidentId , String userEmail) {
         Incident incident = incidentRepository.findById(incidentId).get();
 
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String currentUserEmail = auth.getName(); // typically username/email
-        User user = userRepository.findByEmail(currentUserEmail)
+        User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("Reporter not found"));
 
         SolvedBy solvedBy = solvedByRepository.findByIncidentAndUser(incident, user)
@@ -176,12 +174,10 @@ public class IncidentService {
     }
     
     @Transactional
-    public void resolveIncident(Long incidentId) {
+    public void resolveIncident(Long incidentId , String userEmail) {
         Incident incident = incidentRepository.findById(incidentId).get();
 
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String currentUserEmail = auth.getName(); // typically username/email
-        User user = userRepository.findByEmail(currentUserEmail)
+        User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("Reporter not found"));
 
         SolvedBy solvedBy = solvedByRepository.findByIncidentAndUser(incident, user)
@@ -198,6 +194,11 @@ public class IncidentService {
     @Transactional
     public void deleteIncident(Long incidentId) {
             incidentRepository.deleteById(incidentId);
+    }
+
+    @Transactional
+    public List<AssignmentResponseDTO> getAllAssignments() {
+        return assignToRepository.findAllAssignments();
     }
 
     private IncidentResponseDto convertToResponseDto(Incident incident) {

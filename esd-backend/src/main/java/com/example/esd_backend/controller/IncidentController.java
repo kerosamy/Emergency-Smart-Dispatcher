@@ -78,28 +78,41 @@ public class IncidentController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
-        
+
     @PatchMapping("/{id}/arrival")
-    @PreAuthorize("hasAnyRole('DISPATCHER' , 'RESPONDER')")
+    @PreAuthorize("hasAnyRole('DISPATCHER', 'RESPONDER')")
     public ResponseEntity<Void> confirmArrival(
-            @PathVariable Long id) {
+            @PathVariable Long id,
+            @RequestParam String userEmail) {
         try {
-            incidentService.confirmArrival(id);
+            incidentService.confirmArrival(id, userEmail);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
-    
+
     @PatchMapping("/{id}/resolve")
-    @PreAuthorize("hasAnyRole('DISPATCHER' , 'RESPONDER')")
+    @PreAuthorize("hasAnyRole('DISPATCHER', 'RESPONDER')")
     public ResponseEntity<Void> resolveIncident(
-            @PathVariable Long id) {
+            @PathVariable Long id,
+            @RequestParam String userEmail) {
         try {
-            incidentService.resolveIncident(id);
+            incidentService.resolveIncident(id, userEmail);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    @GetMapping("/assignments")
+    @PreAuthorize("hasAnyRole('DISPATCHER')")
+    public ResponseEntity<List<AssignmentResponseDTO>> getAllAssignments() {
+        try {
+            List<AssignmentResponseDTO> assignments = incidentService.getAllAssignments();
+            return ResponseEntity.ok(assignments);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
         
