@@ -30,6 +30,7 @@ public class StationService {
         return stations.stream()
                 .map(StationMapper::toDto)
                 .toList();
+
     }
 
 }

@@ -32,7 +32,6 @@ public interface IncidentRepository extends JpaRepository<Incident, Long> {
        nativeQuery = true)    
     List<Incident> findAllByOrderByReportTimeDesc();
     
-
     @Transactional
     @Query(value = "SELECT user.name FROM incident JOIN user ON incident.reporter_id = user.id WHERE incident.id = :incidentId", 
        nativeQuery = true)
