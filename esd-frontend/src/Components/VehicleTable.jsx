@@ -1,4 +1,4 @@
-export default function VehicleTable({ items, selectedId, onSelect }) {
+export default function VehicleTable({ items, selectedId, onSelect, onDelete }) {
   return (
     <div className="w-full max-w-6xl bg-black/60 rounded-3xl border border-red-600 p-4 shadow-xl backdrop-blur-lg overflow-x-auto">
       <table className="w-full text-left border-collapse table-auto">
@@ -10,12 +10,13 @@ export default function VehicleTable({ items, selectedId, onSelect }) {
             <th className="px-3 py-2 text-sm md:text-base">Station</th>
             <th className="px-3 py-2 text-sm md:text-base">Type</th>
             <th className="px-3 py-2 text-sm md:text-base">Responder</th>
+            <th className="px-3 py-2 text-sm md:text-base">Action</th> 
           </tr>
         </thead>
         <tbody>
           {items.length === 0 ? (
             <tr>
-              <td colSpan={6} className="text-center text-gray-400 py-4 text-sm">
+              <td colSpan={7} className="text-center text-gray-400 py-4 text-sm">
                 No vehicles found
               </td>
             </tr>
@@ -36,6 +37,18 @@ export default function VehicleTable({ items, selectedId, onSelect }) {
                 <td className="px-3 py-2 text-sm md:text-base">{v.stationName}</td>
                 <td className="px-3 py-2 text-sm md:text-base">{v.vehicleType}</td>
                 <td className="px-3 py-2 text-sm md:text-base">{v.responder || "None"}</td>
+                <td className="px-3 py-2 text-center text-sm md:text-base">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation(); 
+                      onDelete(v.id);}
+                    }
+                    className="hover:scale-125 transition-transform duration-200 p-1"
+                    title="Delete Vehicle"
+                  >
+                    🗑️
+                  </button>
+                </td>
               </tr>
             ))
           )}

@@ -53,7 +53,7 @@ public class UserService {
 
     public List<UnassignedResponderDto> getUnassignedResponders() {
         return userRepository.findByRoleAndVehicleIsNull(Role.RESPONDER).stream()
-                .map(u -> new UnassignedResponderDto(u.getName()))
+                .map(u -> new UnassignedResponderDto(u.getId(), u.getEmail()))
                 .toList();
     }
 }

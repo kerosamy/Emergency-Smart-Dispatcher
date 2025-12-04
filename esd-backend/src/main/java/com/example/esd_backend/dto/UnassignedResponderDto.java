@@ -10,5 +10,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UnassignedResponderDto {
-    private String name;
+    private Long id;
+    private String email;
 }

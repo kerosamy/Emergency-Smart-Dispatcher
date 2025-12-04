@@ -2,6 +2,8 @@
 import { useEffect, useState } from "react";
 import VehicleService from "../services/VehicleService";
 import VehicleTable from "../Components/VehicleTable";
+import StationService from "../services/StationService";
+import UserService from "../services/UserService";
 
 export default function Vehicles() {
   const [vehicles, setVehicles] = useState([]);
@@ -12,10 +14,34 @@ export default function Vehicles() {
   const [capacity, setCapacity] = useState("");
   const [vehicleStatus, setVehicleStatus] = useState("AVAILABLE");
   const [stationName, setStationName] = useState("");
+  const [stations, setStations] = useState([]);
+  const [responderId, setResponderId] = useState("");
+  const [responders, setResponders] = useState([]);
+
 
   useEffect(() => {
     loadVehicles();
+    fetchStations();
+    fetchUnassignedResponders();
   }, []);
+
+  const fetchUnassignedResponders = async () => {
+    try {
+      const data = await UserService.getUnassignedResponders();
+      setResponders(data);
+    } catch (err) {
+      console.error("Error fetching responders", err);
+    }
+  };
+
+  const fetchStations = async () => {
+    try {
+      const data = await StationService.getStations(); // API should return [{name, ...}]
+      setStations(data);
+    } catch (err) {
+      console.error("Error fetching stations", err);
+    }
+  };
 
   const loadVehicles = () => {
     VehicleService.getAllVehicles()
@@ -23,19 +49,39 @@ export default function Vehicles() {
       .catch((err) => console.error(err));
   };
 
+
   const handleAddVehicle = async (e) => {
     e.preventDefault();
-    const dto = { capacity: parseInt(capacity), vehicleStatus, stationName };
+    const dto = { 
+      capacity: parseInt(capacity),
+      vehicleStatus,
+      stationName,
+      responderId: responderId ? parseInt(responderId) : null
+    };
 
     try {
       await VehicleService.addVehicle(dto);
       setShowModal(false);
       loadVehicles();
+      fetchUnassignedResponders();
       setCapacity("");
       setStationName("");
       setVehicleStatus("AVAILABLE");
+      setResponderId("");
+      const data = await VehicleService.getAllVehicles();
+      setVehicles(data);
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleDeleteVehicle = async (vehicleId) => {
+    try {
+      await VehicleService.deleteVehicle(vehicleId);
+      setVehicles((prev) => prev.filter((v) => v.id !== vehicleId)); 
+      if (selectedVehicle?.id === vehicleId) setSelectedVehicle(null); 
+    } catch (err) {
+      console.error("Error deleting vehicle:", err);
     }
   };
 
@@ -59,6 +105,8 @@ export default function Vehicles() {
           items={vehicles}
           selectedId={selectedVehicle?.id}
           onSelect={(v) => setSelectedVehicle(v)}
+          onDelete={handleDeleteVehicle}
+          showDelete={true} 
         />
 
         {/* Selected vehicle details */}
@@ -97,22 +145,34 @@ export default function Vehicles() {
                   onChange={(e) => setCapacity(e.target.value)}
                   required
                 />
-                <select
+               
+               <select
                   className="w-full p-3 rounded-xl bg-black/50 border border-red-500 text-white"
-                  value={vehicleStatus}
-                  onChange={(e) => setVehicleStatus(e.target.value)}
-                >
-                  <option value="AVAILABLE">Available</option>
-                  <option value="IN_SERVICE">In Service</option>
-                  <option value="MAINTENANCE">Maintenance</option>
-                </select>
-                <input
-                  className="w-full p-3 rounded-xl bg-black/50 border border-red-500 text-white"
-                  placeholder="Station Name"
                   value={stationName}
                   onChange={(e) => setStationName(e.target.value)}
                   required
-                />
+                >
+                  <option value="">Select a Station</option>
+                  {stations.map((s) => (
+                    <option key={s.name} value={s.name}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+
+              <select
+                  className="w-full p-3 rounded-xl bg-black/50 border border-red-500 text-white"
+                  value={responderId}
+                  onChange={(e) => setResponderId(e.target.value)}
+                  required
+                >
+                  <option value="">Select a Responder</option>
+                  {responders.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.email}
+                    </option>
+                  ))}
+                </select>
 
                 <button className="w-full py-3 rounded-xl font-bold bg-red-600 hover:bg-red-700 text-white">
                   Add Vehicle

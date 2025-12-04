@@ -12,5 +12,5 @@ import lombok.NoArgsConstructor;
 public class VehicleAssignmentDto {
     private Long vehicleId;
     private String stationName;
-    private String driverName;
+    private String driverEmail;
 }

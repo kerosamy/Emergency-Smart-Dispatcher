@@ -1,7 +1,6 @@
 package com.example.esd_backend.controller;
 
 import com.example.esd_backend.dto.StationDto;
-import com.example.esd_backend.dto.StationNameTypeDto;
 import com.example.esd_backend.model.Station;
 import com.example.esd_backend.service.StationService;
 import org.springframework.http.ResponseEntity;
