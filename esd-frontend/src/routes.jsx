@@ -4,7 +4,7 @@ import Dashboard from "./pages/Dashboard";
 import Map from "./pages/Map";
 import DispatchMap from "./pages/DispatchMap";
 import AddUser from "./pages/AddUser";
-import AddVehicle from "./pages/AddVehicle";
+import Vehicles from "./pages/Vehicles";
 import AddIncident from "./pages/AddIncident";
 import Assign from "./pages/Assign";
 import AddStation from "./pages/AddStation";
@@ -15,7 +15,7 @@ export const routes = [
   { path: "/dashboard", element: <Dashboard />, isProtected: true },
   { path: "/DispatchMap", element: <DispatchMap />, isProtected: true },
   { path: "/add-user", element: <AddUser />, isProtected: true },
-  { path: "/add-vehicle", element: <AddVehicle />, isProtected: true },
+  { path: "/vehicles", element: <Vehicles />, isProtected: true },
   { path: "/add-incident", element: <AddIncident />, isProtected: true },
   { path: "/assign", element: <Assign />, isProtected: true },
   { path: "/add-station", element: <AddStation />, isProtected: true },
@@ -25,10 +25,10 @@ export const routes = [
 export const TopBarPages = [
   { name: "Dashboard", path: "/dashboard" },
   { name: "Dispatch Map", path: "/DispatchMap" },
-  { name: "Add User", path: "/add-user" },
-  { name: "Add Vehicle", path: "/add-vehicle" },
+  { name: "Vehicles", path: "/vehicles" },
   { name: "Add Incident", path: "/add-incident" },
   { name: "Assign", path: "/assign" },
   { name: "Add Station", path: "/add-station" },
+  { name: "Add User", path: "/add-user" },
 ];
 export default routes;

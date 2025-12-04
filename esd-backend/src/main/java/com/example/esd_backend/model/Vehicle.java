@@ -25,6 +25,7 @@ public class Vehicle {
     @Column(nullable = false)
     private Integer capacity;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private StationType stationType;
 

@@ -3,6 +3,7 @@ package com.example.esd_backend.service;
 import com.example.esd_backend.dto.UnassignedVehicleDto;
 import com.example.esd_backend.dto.VehicleAssignmentDto;
 import com.example.esd_backend.dto.VehicleDto;
+import com.example.esd_backend.dto.VehicleListDto;
 import com.example.esd_backend.mapper.VehicleMapper;
 import com.example.esd_backend.model.Station;
 import com.example.esd_backend.model.User;
@@ -13,6 +14,7 @@ import com.example.esd_backend.repository.VehicleRepository;
 
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -59,5 +61,13 @@ public class VehicleService {
         vehicleRepository.save(vehicle);
 
         return new VehicleAssignmentDto(vehicle.getId(), vehicle.getStation().getName(), user.getName());
+    }
+
+    public List<VehicleListDto> getAllVehicles() {
+        List<VehicleListDto> result = new ArrayList<>();
+        for (Vehicle vehicle : vehicleRepository.findAll()){
+            result.add(VehicleMapper.toListDto(vehicle));
+        }
+        return result;
     }
 }
