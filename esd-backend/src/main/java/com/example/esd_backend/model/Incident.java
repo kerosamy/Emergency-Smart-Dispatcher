@@ -15,7 +15,13 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "incident")
+@Table(name = "incident",
+    indexes = {
+        @Index(name = "idx_incident_report_time", columnList = "report_time"),
+        @Index(name = "idx_incident_reporter_id", columnList = "reporter_id"),
+        @Index(name = "idx_incident_coordinates", columnList = "latitude, longitude")
+    }
+)
 public class Incident {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

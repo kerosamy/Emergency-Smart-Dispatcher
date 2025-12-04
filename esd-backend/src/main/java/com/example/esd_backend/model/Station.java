@@ -17,7 +17,12 @@ import java.util.List;
         name = "station",
         uniqueConstraints = {
                 @UniqueConstraint(columnNames = {"latitude", "longitude"})
-        }
+        },
+        indexes = {
+        @Index(name = "idx_station_name", columnList = "name", unique = true),
+        @Index(name = "idx_station_coordinates", columnList = "latitude, longitude"),
+        @Index(name = "idx_station_type", columnList = "type")
+    }
 )
 public class Station {
     @Id

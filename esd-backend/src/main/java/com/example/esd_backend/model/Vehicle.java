@@ -15,7 +15,12 @@ import java.util.List;
 @Builder
 @Entity
 
-@Table(name = "vehicle")
+@Table(name = "vehicle",
+        indexes = {
+        @Index(name = "idx_vehicle_user_id", columnList = "user_id"),
+        @Index(name = "idx_vehicle_station_name", columnList = "station_name"),
+    }
+)
 public class Vehicle {
 
     @Id

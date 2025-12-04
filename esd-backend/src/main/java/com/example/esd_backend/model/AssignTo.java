@@ -12,7 +12,12 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "assign_to")
+@Table(name = "assign_to",
+    indexes = {
+        @Index(name = "idx_assign_to_incident_id", columnList = "incident_id"),
+        @Index(name = "idx_assign_to_vehicle_id", columnList = "vehicle_id"),
+    }
+)
 @IdClass(AssignTo.AssignToId.class)
 public class AssignTo {
 

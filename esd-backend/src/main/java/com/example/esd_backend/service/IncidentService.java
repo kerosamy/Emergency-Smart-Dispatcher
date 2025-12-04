@@ -90,7 +90,7 @@ public class IncidentService {
 
     @Transactional
     public void updateIncident(Long incidentId, UpdateIncidentDto request) {
-        Incident incident = incidentRepository.findById(incidentId).get();
+        Incident incident = incidentRepository.SearchId(incidentId);
 
         if (request.getSeverity() != null) {
             incident.setSeverity(request.getSeverity());
@@ -107,7 +107,7 @@ public class IncidentService {
     
     @Transactional
     public void assignVehicleToIncident(Long incidentId, Long vehicleId) {
-            Incident incident = incidentRepository.findById(incidentId).get();
+            Incident incident = incidentRepository.SearchId(incidentId);
             
             Vehicle vehicle = vehicleRepository.findById(vehicleId).get();
             
@@ -135,7 +135,7 @@ public class IncidentService {
     
     @Transactional
     public void confirmArrival(Long incidentId, ConfirmArrivalRequestDTO request) {
-        Incident incident = incidentRepository.findById(incidentId).get();
+        Incident incident = incidentRepository.SearchId(incidentId);
         
         User user = userRepository.findById(Long.valueOf(request.getUserId())).get();
         
@@ -148,7 +148,7 @@ public class IncidentService {
     
     @Transactional
     public void resolveIncident(Long incidentId, ConfirmSolutionRequestDTO request) {
-        Incident incident = incidentRepository.findById(incidentId).get();
+        Incident incident = incidentRepository.SearchId(incidentId);
         
         User user = userRepository.findById(Long.valueOf(request.getUserId())).get();
         
