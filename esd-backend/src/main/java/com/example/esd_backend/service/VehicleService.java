@@ -35,6 +35,14 @@ public class VehicleService {
                 .orElseThrow(() -> new RuntimeException("station does not exist"));
         Vehicle vehicle = VehicleMapper.toEntity(vehicleDto, station);
         vehicle.setStationType(station.getType());
+        if (vehicleDto.getResponderId() != null) {
+            User responder = userRepository.findById(vehicleDto.getResponderId())
+                    .orElseThrow(() -> new RuntimeException("Responder not found"));
+            if (responder.getVehicle() != null) {
+                throw new RuntimeException("This responder is already assigned to a vehicle");
+            }
+            vehicle.setDriver(responder);
+        }
         station.getVehicles().add(vehicle);
         return vehicleRepository.save(vehicle);
     }
@@ -45,14 +53,14 @@ public class VehicleService {
                 .toList();
     }
 
-    public VehicleAssignmentDto assignResponder(Long vehicleId, String name) {
+    public VehicleAssignmentDto assignResponder(Long vehicleId, Long responderID) {
         Vehicle vehicle =vehicleRepository.findById(vehicleId)
                 .orElseThrow(() -> new RuntimeException("Vehicle not found"));
         if (vehicle.getDriver() != null) {
             throw new RuntimeException("Vehicle already has a driver assigned");
         }
 
-        User user = userRepository.findByName(name)
+        User user = userRepository.findById(responderID)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         if (user.getVehicle() != null) {
             throw new RuntimeException("Responder already assigned to a vehicle");
@@ -61,7 +69,7 @@ public class VehicleService {
         vehicle.setDriver(user);
         vehicleRepository.save(vehicle);
 
-        return new VehicleAssignmentDto(vehicle.getId(), vehicle.getStation().getName(), user.getName());
+        return new VehicleAssignmentDto(vehicle.getId(), vehicle.getStation().getName(), user.getEmail());
     }
 
     public List<VehicleListDto> getAllVehicles() {
@@ -79,4 +87,14 @@ public class VehicleService {
         }
         return result;
     }
+    public void deleteVehicle(Long id) {
+        Vehicle vehicle = vehicleRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Vehicle not found"));
+        Station station = vehicle.getStation();
+        if (station != null) {
+            station.getVehicles().remove(vehicle);
+        }
+        vehicleRepository.delete(vehicle);
+    }
+
 }

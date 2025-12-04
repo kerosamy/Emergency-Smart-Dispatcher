@@ -39,8 +39,8 @@ public class VehicleController {
     @PreAuthorize("hasRole('DISPATCHER')")
     public ResponseEntity<VehicleAssignmentDto>  assignResponder (
             @RequestParam Long vehicleId,
-            @RequestParam String name ){
-        return ResponseEntity.ok(vehicleService.assignResponder(vehicleId, name));
+            @RequestParam Long responderID ){
+        return ResponseEntity.ok(vehicleService.assignResponder(vehicleId, responderID));
     }
 
     @GetMapping("/all")
@@ -55,4 +55,10 @@ public class VehicleController {
         return ResponseEntity.ok(vehicleService.getAvailableVehicles());
     }
 
+    @DeleteMapping("/delete/{id}")
+    @PreAuthorize("hasRole('DISPATCHER')")
+    public ResponseEntity<Void> deleteVehicle(@PathVariable Long id) {
+        vehicleService.deleteVehicle(id);
+        return ResponseEntity.noContent().build();
+    }
 }

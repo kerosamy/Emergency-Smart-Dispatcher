@@ -48,9 +48,17 @@ class VehicleService {
 
     return res.data;
   }
-    async getAvailableVehicles() {
+   
+  async getAvailableVehicles() {
     const token = UserService.getToken();
     const res = await axios.get(`${API_URL}/available`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return res.data;
+  }
+    async deleteVehicle(vehicleId) {
+    const token = UserService.getToken();
+    const res = await axios.delete(`${API_URL}/delete/${vehicleId}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     return res.data;

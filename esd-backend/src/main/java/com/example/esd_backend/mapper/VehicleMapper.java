@@ -11,6 +11,7 @@ public class VehicleMapper {
                 .capacity(dto.getCapacity())
                 .vehicleStatus(dto.getVehicleStatus())
                 .station(station)
+                .stationType(station.getType())
                 .build();
     }
 

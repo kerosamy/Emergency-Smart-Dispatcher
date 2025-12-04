@@ -21,6 +21,22 @@ const addStation = async (name, latitude, longitude, type) => {
   }
 };
 
+const getStations = async () => {
+  try {
+    const token = UserService.getToken();
+    const response = await axios.get(`${API_BASE_URL}/getAllStations`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data; 
+  } catch (error) {
+    console.error("Get stations error:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+
+
 export default {
   addStation,
+  getStations,
 };

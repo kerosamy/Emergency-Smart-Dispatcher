@@ -42,9 +42,19 @@ const addUser = async (name, email, password, role) => {
   }
 };
 
+const getUnassignedResponders = async () => {
+  const token = getToken();
+
+  const res = await axios.get(`${API_BASE_URL}/unassigned`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  return res.data;
+};
 export default {
   login,
   logout,
   getToken,
   addUser,
+  getUnassignedResponders
 };
