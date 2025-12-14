@@ -17,6 +17,9 @@ import java.util.Optional;
 @Repository
 public interface AssignToRepository extends JpaRepository<AssignTo, Long> {
     
+    @Transactional
+    @Query(value = "SELECT * FROM assign_to WHERE incident_id = :#{#incident.id} AND vehicle_id = :#{#vehicle.id}", 
+       nativeQuery = true)
     Optional<AssignTo> findByIncidentAndVehicle(Incident incident, Vehicle vehicle);
 
     @Transactional

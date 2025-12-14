@@ -39,8 +39,8 @@ public class VehicleController {
     @PreAuthorize("hasRole('DISPATCHER')")
     public ResponseEntity<VehicleAssignmentDto>  assignResponder (
             @RequestParam Long vehicleId,
-            @RequestParam Long responderID ){
-        return ResponseEntity.ok(vehicleService.assignResponder(vehicleId, responderID));
+            @RequestParam String name ){
+        return ResponseEntity.ok(vehicleService.assignResponder(vehicleId, name));
     }
 
     @GetMapping("/all")

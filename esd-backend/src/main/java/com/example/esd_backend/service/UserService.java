@@ -48,11 +48,11 @@ public class UserService {
 
         User user = userMapper.toEntity(signUpUserRequestDto);
 
-        userRepository.save(user);
+        userRepository.insertUser(user);
     }
 
     public List<UnassignedResponderDto> getUnassignedResponders() {
-        return userRepository.findByRoleAndVehicleIsNull(Role.RESPONDER).stream()
+        return userRepository.findByRoleAndVehicleIsNull(Role.RESPONDER.toString()).stream()
                 .map(u -> new UnassignedResponderDto(u.getId(), u.getEmail()))
                 .toList();
     }
