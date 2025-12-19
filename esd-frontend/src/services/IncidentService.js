@@ -20,27 +20,27 @@ class IncidentService {
     return res.data;
   }
 
-  async confirmArrival(id, userEmail) {
+  async confirmArrival(id, vehicleId) {
     const token = UserService.getToken();
     const res = await axios.patch(
       `${API_URL}/${id}/arrival`,
       null,
       {
         headers: { Authorization: `Bearer ${token}` },
-        params: { userEmail },  // <-- HERE
+        params: { vehicleId },
       }
     );
     return res.data;
   }
 
-  async resolveIncident(id, userEmail) {
+  async resolveIncident(id, vehicleId) {
     const token = UserService.getToken();
     const res = await axios.patch(
       `${API_URL}/${id}/resolve`,
       null,
       {
         headers: { Authorization: `Bearer ${token}` },
-        params: { userEmail },  // <-- HERE
+        params: { vehicleId },
       }
     );
     return res.data;

@@ -83,9 +83,9 @@ public class IncidentController {
     @PreAuthorize("hasAnyRole('DISPATCHER', 'RESPONDER')")
     public ResponseEntity<Void> confirmArrival(
             @PathVariable Long id,
-            @RequestParam String userEmail) {
+            @RequestParam Long vehicleId) {
         try {
-            incidentService.confirmArrival(id, userEmail);
+            incidentService.confirmArrival(id, vehicleId);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
@@ -96,9 +96,9 @@ public class IncidentController {
     @PreAuthorize("hasAnyRole('DISPATCHER', 'RESPONDER')")
     public ResponseEntity<Void> resolveIncident(
             @PathVariable Long id,
-            @RequestParam String userEmail) {
+            @RequestParam Long vehicleId) {
         try {
-            incidentService.resolveIncident(id, userEmail);
+            incidentService.resolveIncident(id, vehicleId);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
