@@ -7,7 +7,7 @@ import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
 import VehicleService from "../services/VehicleService";
 import StationService from "../services/StationService";
 import IncidentService from "../services/IncidentService";
-import RoutingLayer from "../Components/RoutingLayer";
+import RoutingLayer from "../Components/RoutingLayer.jsx";
 
 // LOCAL ICONS
 import carIconUrl from "../assets/police-car.png";
@@ -48,7 +48,7 @@ export default function MapView() {
             id: v.id,
             name: v.vehicleType || `Vehicle ${v.id}`,
             lat: parseFloat(v.stationLatitude),
-            lng: parseFloat(v.stationLongitude) + 0.2,
+            lng: parseFloat(v.stationLongitude)+0.002,
           }))
           .filter((v) => !isNaN(v.lat) && !isNaN(v.lng));
         setVehicles(validVehicles);
