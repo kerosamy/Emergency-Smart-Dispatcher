@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @Table(name = "confirm",
     indexes = {
         @Index(name = "idx_solved_by_incident_id", columnList = "incident_id"),
-        @Index(name = "idx_solved_by_user_id", columnList = "user_id"),
+        @Index(name = "idx_solved_by_vehicle_id", columnList = "vehicle_id"),
     }
 )
 @IdClass(SolvedBy.SolvedById.class)
@@ -28,8 +28,8 @@ public class SolvedBy {
 
     @Id
     @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
+    @JoinColumn(name = "vehicle_id")
+    private Vehicle vehicle;
 
     @Column(name = "arrival_time")
     private LocalDateTime arrivalTime;
@@ -37,12 +37,11 @@ public class SolvedBy {
     @Column(name = "solution_time")
     private LocalDateTime solutionTime;
 
-    // Composite Key Class
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
     public static class SolvedById implements Serializable {
         private Long incident;
-        private Long user;
+        private Long vehicle;
     }
 }

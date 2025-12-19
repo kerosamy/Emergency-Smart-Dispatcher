@@ -34,7 +34,6 @@ public class AssignTo {
     @Column(name = "assign_time", nullable = false, updatable = false)
     private LocalDateTime assignTime;
 
-    // Composite Key Class
     @Data
     @NoArgsConstructor
     @AllArgsConstructor

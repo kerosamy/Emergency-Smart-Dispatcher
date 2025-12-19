@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.Console;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -150,7 +151,7 @@ public class IncidentService {
             if (vehicle.getDriver() != null) {
                 SolvedBy solvedBy = new SolvedBy();
                 solvedBy.setIncident(incident);
-                solvedBy.setUser(vehicle.getDriver());
+                solvedBy.setVehicle(vehicle);
                 solvedByRepository.save(solvedBy);
             }
             
@@ -160,14 +161,13 @@ public class IncidentService {
     
     
     @Transactional
-    public void confirmArrival(Long incidentId , String userEmail) {
+    public void confirmArrival(Long incidentId , Long vehicleId) {
         Incident incident = incidentRepository.findById(incidentId).get();
 
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("Reporter not found"));
+        Vehicle vehicle = vehicleRepository.SearchId(vehicleId);
 
-        SolvedBy solvedBy = solvedByRepository.findByIncidentAndUser(incident, user)
-                .orElseThrow(() -> new RuntimeException("User not assigned to this incident"));
+        SolvedBy solvedBy = solvedByRepository.findByIncidentAndVehicle(incident, vehicle)
+                .orElseThrow(() -> new RuntimeException("Vehicle not assigned to this incident"));
         
         solvedBy.setArrivalTime(LocalDateTime.now());
         solvedByRepository.UpdateArrivalTime(solvedBy);
@@ -175,14 +175,13 @@ public class IncidentService {
     }
     
     @Transactional
-    public void resolveIncident(Long incidentId , String userEmail) {
+    public void resolveIncident(Long incidentId , Long VehicleId) {
         Incident incident = incidentRepository.findById(incidentId).get();
 
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("Reporter not found"));
+        Vehicle vehicle = vehicleRepository.SearchId(VehicleId);
 
-        SolvedBy solvedBy = solvedByRepository.findByIncidentAndUser(incident, user)
-                .orElseThrow(() -> new RuntimeException("User not assigned to this incident"));
+        SolvedBy solvedBy = solvedByRepository.findByIncidentAndVehicle(incident, vehicle)
+                .orElseThrow(() -> new RuntimeException("Vehicle not assigned to this incident"));
         
         solvedBy.setSolutionTime(LocalDateTime.now());
         solvedByRepository.save(solvedBy);
