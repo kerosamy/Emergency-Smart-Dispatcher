@@ -24,11 +24,13 @@ public class VehicleService {
     private final VehicleRepository vehicleRepository;
     private final StationRepository stationRepository;
     private final UserRepository userRepository;
+    private final AutoAssign autoAssign;
 
-    public VehicleService(VehicleRepository vehicleRepository, StationRepository stationRepository, UserRepository userRepository) {
+    public VehicleService(VehicleRepository vehicleRepository, StationRepository stationRepository, UserRepository userRepository, AutoAssign autoAssign) {
         this.vehicleRepository = vehicleRepository;
         this.stationRepository = stationRepository;
         this.userRepository = userRepository;
+        this.autoAssign = autoAssign;
     }
 
     public Vehicle addVehicle(VehicleDto vehicleDto) {
@@ -45,6 +47,7 @@ public class VehicleService {
             vehicle.setDriver(responder);
         }
         station.getVehicles().add(vehicle);
+        autoAssign.handleNewVehicle(vehicle);
         return vehicleRepository.save(vehicle);
     }
 
