@@ -26,17 +26,7 @@ public interface SolvedByRepository extends JpaRepository<SolvedBy, Long> {;
     void UpdateArrivalTime(SolvedBy solvedBy);
 
     @Query(value = "SELECT " +
-               " MAX(TIMESTAMPDIFF(SECOND, a.assign_time, c.solution_time)) as max_response, " +
-               " MIN(TIMESTAMPDIFF(SECOND, a.assign_time, c.solution_time)) as min_response, " +
-               " AVG(TIMESTAMPDIFF(SECOND, a.assign_time, c.solution_time)) as avg_response " +
-               "FROM incident i " +
-               "JOIN assign_to a ON i.id = a.incident_id " +
-               "JOIN confirm c ON i.id = c.incident_id " +
-               "WHERE c.solution_time IS NOT NULL; "
-               , nativeQuery = true )
-    List<Object[]> getAllStats();
-
-    @Query(value = "SELECT i.type as type, " +
+               " i.type, " +
                " MAX(TIMESTAMPDIFF(SECOND, a.assign_time, c.solution_time)) as max_response, " +
                " MIN(TIMESTAMPDIFF(SECOND, a.assign_time, c.solution_time)) as min_response, " +
                " AVG(TIMESTAMPDIFF(SECOND, a.assign_time, c.solution_time)) as avg_response, " +
@@ -45,12 +35,12 @@ public interface SolvedByRepository extends JpaRepository<SolvedBy, Long> {;
                "JOIN assign_to a ON i.id = a.incident_id " +
                "JOIN confirm c ON i.id = c.incident_id " +
                "WHERE c.solution_time IS NOT NULL " +
-               "  AND i.type = :type " +
+               "  AND (:type IS NULL OR i.type = :type) " +
                "GROUP BY i.type", nativeQuery = true)
-    
-    List<Object[]> getResponseTimeStatsBySpecificType(@Param("type") String type);
+    List<Object[]> getResponseTimeStatsByType(@Param("type") String type);
 
-    @Query(value = "SELECT i.type as type, " +
+    @Query(value = "SELECT " +
+               " i.type, " +
                " EXTRACT(MONTH FROM c.solution_time) as month, " +
                " EXTRACT(YEAR FROM c.solution_time) as year, " +
                " MAX(TIMESTAMPDIFF(SECOND, a.assign_time, c.solution_time)) as max_response, " +
@@ -66,25 +56,25 @@ public interface SolvedByRepository extends JpaRepository<SolvedBy, Long> {;
                "  AND (:type IS NULL OR i.type = :type) " +
                "GROUP BY i.type, month, year " +
                "ORDER BY year, month", nativeQuery = true)
-   
     List<Object[]> getResponseTimeStatsByTypeAndMonth(
         @Param("type") String type,
         @Param("month") Integer month,
         @Param("year") Integer year
         );
 
-    @Query(value = "SELECT i.type as type, " +
-               "       EXTRACT(DAY FROM c.solution_time) as day, " +
-               "       EXTRACT(MONTH FROM c.solution_time) as month, " +
-               "       EXTRACT(YEAR FROM c.solution_time) as year, " +
-               "       MAX(TIMESTAMPDIFF(SECOND, a.assign_time, c.solution_time)) as max_response, " +
-               "       MIN(TIMESTAMPDIFF(SECOND, a.assign_time, c.solution_time)) as min_response, " +
-               "       AVG(TIMESTAMPDIFF(SECOND, a.assign_time, c.solution_time)) as avg_response, " +
-               "       COUNT(*) as total_incidents " +
+    @Query(value = "SELECT " +
+               " i.type, " +
+               " EXTRACT(DAY FROM c.solution_time) as day, " +
+               " EXTRACT(MONTH FROM c.solution_time) as month, " +
+               " EXTRACT(YEAR FROM c.solution_time) as year, " +
+               " MAX(TIMESTAMPDIFF(SECOND, a.assign_time, c.solution_time)) as max_response, " +
+               " MIN(TIMESTAMPDIFF(SECOND, a.assign_time, c.solution_time)) as min_response, " +
+               " AVG(TIMESTAMPDIFF(SECOND, a.assign_time, c.solution_time)) as avg_response, " +
+               " COUNT(*) as total_incidents " +
                "FROM incident i " +
                "JOIN assign_to a ON i.id = a.incident_id " +
                "JOIN confirm c ON i.id = c.incident_id " +
-               "WHERE c.solution_time IS NOT NULL AND a.assign_time IS NOT NULL " +
+               "WHERE c.solution_time IS NOT NULL " +
                "  AND EXTRACT(DAY FROM c.solution_time) = :day " +
                "  AND EXTRACT(MONTH FROM c.solution_time) = :month " +
                "  AND EXTRACT(YEAR FROM c.solution_time) = :year " +
@@ -103,5 +93,38 @@ public interface SolvedByRepository extends JpaRepository<SolvedBy, Long> {;
                "WHERE c.solution_time IS NOT NULL " +
                "ORDER BY year", nativeQuery = true)
     List<Integer> getAvailableYears();
+
+    @Query(value = "SELECT v.id as vehicle_id, " +
+               " v.station_type, " +
+               " v.capacity, " +
+               " u.name as driver_name, " +
+               " AVG(TIMESTAMPDIFF(SECOND, a.assign_time, c.solution_time)) as avg_response " +
+               "FROM vehicle v " +
+               "JOIN assign_to a ON v.id = a.vehicle_id " +
+               "JOIN confirm c ON v.id = c.vehicle_id " +
+               "LEFT JOIN user u ON v.user_id = u.id " +
+               "WHERE c.solution_time IS NOT NULL " +
+               "  AND (:stationType IS NULL OR v.station_type = :stationType) " +
+               "GROUP BY v.id, v.station_type, v.capacity, u.name " +
+               "ORDER BY avg_response ASC " +
+               "LIMIT 10", nativeQuery = true)
+    List<Object[]> getTop10VehiclesByAvgResponseTime(@Param("stationType") String stationType);
+
+    @Query(value = "SELECT s.id as station_id, " +
+               " s.name as station_name, " +
+               " s.type as station_type, " +
+               " s.latitude, " +
+               " s.longitude, " +
+               " AVG(TIMESTAMPDIFF(SECOND, a.assign_time, c.solution_time)) as avg_response " +
+               "FROM station s " +
+               "JOIN vehicle v ON s.name = v.station_name " +
+               "JOIN assign_to a ON v.id = a.vehicle_id " +
+               "JOIN confirm c ON v.id = c.vehicle_id " +
+               "WHERE c.solution_time IS NOT NULL " +
+               " AND (:stationType IS NULL OR s.type = :stationType) " +
+               "GROUP BY s.id, s.name, s.type, s.latitude, s.longitude " +
+               "ORDER BY avg_response ASC " +
+               "LIMIT 10", nativeQuery = true)
+    List<Object[]> getTop10StationsByAvgResponseTime(@Param("stationType") String stationType);
     
 }

@@ -5,6 +5,7 @@ import AddUser from "./pages/AddUser";
 import Vehicles from "./pages/Vehicles";
 import Assign from "./pages/Assign";
 import AddStation from "./pages/AddStation";
+import Reports from "./pages/Reports";
 
 import Incidents from "./pages/Incidents";
 
@@ -20,6 +21,7 @@ export const routes = [
   { path: "/incidents", element: <Incidents />, isProtected: true },
   { path: "/assign", element: <Assign />, isProtected: true },
   { path: "/add-station", element: <AddStation />, isProtected: true },
+  { path: "/reports", element: <Reports />, isProtected: true },
   { path: "/MapView", element: <MapView />, isProtected: true }
 
 ];
@@ -32,5 +34,6 @@ export const TopBarPages = [
   { name: "Incidents", path: "/incidents" },
   { name: "Assign", path: "/assign" },
   { name: "Add Station", path: "/add-station" },
+  { name: "Reports", path: "/reports" },
 ];
 export default routes;
