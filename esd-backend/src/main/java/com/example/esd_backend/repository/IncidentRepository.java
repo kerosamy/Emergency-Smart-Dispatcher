@@ -2,10 +2,10 @@ package com.example.esd_backend.repository;
 
 import com.example.esd_backend.model.Incident;
 import com.example.esd_backend.model.enums.IncidentStatus;
-import com.example.esd_backend.model.enums.IncidentType;
 
-
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -47,4 +47,8 @@ public interface IncidentRepository extends JpaRepository<Incident, Long> {
     @Query(value = "DELETE FROM incident WHERE id = :id", 
        nativeQuery = true)
     void deleteById(Long id);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT i FROM Incident i WHERE i.id = :id")
+    Incident findByIdForUpdate(@Param("id") Long id);
 }

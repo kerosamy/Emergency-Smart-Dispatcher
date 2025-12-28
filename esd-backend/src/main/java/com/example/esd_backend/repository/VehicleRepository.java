@@ -1,7 +1,9 @@
 package com.example.esd_backend.repository;
 import com.example.esd_backend.model.Vehicle;
 import com.example.esd_backend.model.enums.VehicleStatus;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,4 +21,8 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     List<Vehicle> findByDriverIsNull();
     
     List<Vehicle> findByVehicleStatus(VehicleStatus status);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT v FROM Vehicle v WHERE v.id = :id")
+    Vehicle findByIdForUpdate(@Param("id") Long id);
 }

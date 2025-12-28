@@ -25,7 +25,7 @@ import java.util.List;
 public class AutoAssign {
 
     private static final Logger logger = LoggerFactory.getLogger(AutoAssign.class);
-    private static final Integer factor = 10;
+    private static final int factor = 10;
     private final VehicleRepository vehicleRepository;
     private final IncidentRepository incidentRepository;
     private final AssignToRepository assignToRepository;
@@ -83,6 +83,41 @@ public class AutoAssign {
         }
     }
 
+    @Transactional
+    public void assignVehicleToIncident(Long incidentId, Long vehicleId) {
+        Incident incident = incidentRepository.findByIdForUpdate(incidentId);
+        Vehicle vehicle = vehicleRepository.findByIdForUpdate(vehicleId);
+
+        if (vehicle.getVehicleStatus() != VehicleStatus.AVAILABLE) {
+            logger.warn("Vehicle {} is not available", vehicleId);
+            return;
+        }
+
+        AssignTo assignTo = new AssignTo();
+        assignTo.setIncident(incident);
+        assignTo.setVehicle(vehicle);
+        assignTo.setAssignTime(LocalDateTime.now());
+        assignToRepository.save(assignTo);
+
+        if (vehicle.getDriver() != null) {
+            SolvedBy solvedBy = new SolvedBy();
+            solvedBy.setIncident(incident);
+            solvedBy.setVehicle(vehicle);
+            solvedByRepository.save(solvedBy);
+        }
+
+        vehicle.setVehicleStatus(VehicleStatus.BUSY);
+        vehicleRepository.save(vehicle);
+
+        int currentTotal = getAssignedCapacity(incidentId);
+        int required = incident.getCapacity() != null ? incident.getCapacity() : 0;
+
+        if (currentTotal >= required) {
+            incident.setStatus(IncidentStatus.DISPATCHED);
+            incidentRepository.save(incident);
+        }
+    }
+
     private double effectivePriority(Incident incident) {
         long waitingMinutes = Duration.between(incident.getReportTime(), LocalDateTime.now()).toMinutes();
         int severity = incident.getSeverity() != null ? incident.getSeverity() : 1;
@@ -103,42 +138,6 @@ public class AutoAssign {
                 Math.pow(latitude1 - latitude2, 2) +
                 Math.pow(longitude1 - longitude2, 2)
         );
-    }
-
-    @Transactional
-    public void assignVehicleToIncident(Long incidentId, Long vehicleId) {
-        Incident incident = incidentRepository.SearchId(incidentId);
-        int assignedCapacity = getAssignedCapacity(incidentId);
-        int requiredCapacity = incident.getCapacity() != null ? incident.getCapacity() : 0;
-
-        Vehicle vehicle = vehicleRepository.findById(vehicleId).get();
-
-        if (vehicle.getVehicleStatus() != VehicleStatus.AVAILABLE) {
-            logger.warn("Vehicle {} is not available. Status: {}", vehicle.getId(), vehicle.getVehicleStatus());
-        }
-
-        AssignTo assignTo = new AssignTo();
-        assignTo.setIncident(incident);
-        assignTo.setVehicle(vehicle);
-        assignTo.setAssignTime(LocalDateTime.now());
-        assignToRepository.save(assignTo);
-
-        if (vehicle.getDriver() != null) {
-            SolvedBy solvedBy = new SolvedBy();
-            solvedBy.setIncident(incident);
-            solvedBy.setVehicle(vehicle);
-            solvedByRepository.save(solvedBy);
-        }
-
-        vehicle.setVehicleStatus(VehicleStatus.BUSY);
-        vehicleRepository.save(vehicle);
-
-        assignedCapacity += vehicle.getCapacity();
-
-        if (assignedCapacity >= requiredCapacity) {
-            incident.setStatus(IncidentStatus.DISPATCHED);
-            incidentRepository.save(incident);
-        }
     }
 
     public int getAssignedCapacity(Long incidentId) {
