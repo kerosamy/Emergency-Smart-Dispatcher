@@ -26,4 +26,6 @@ public interface AssignToRepository extends JpaRepository<AssignTo, Long> {
     @Query(value = "SELECT incident_id AS incidentId, vehicle_id AS vehicleId FROM assign_to", 
        nativeQuery = true)
     List<AssignmentResponseDTO> findAllAssignments();
+
+    List<AssignTo> findByIncidentId(Long incidentId);
 }
