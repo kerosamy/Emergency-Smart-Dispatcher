@@ -41,9 +41,6 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<SolvedBy> solvedBIES = new ArrayList<>();
-
     @OneToMany(mappedBy = "reporter" , cascade = CascadeType.ALL)
     private List<Incident> userReports = new ArrayList<>();
 

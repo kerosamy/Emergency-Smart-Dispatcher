@@ -42,6 +42,10 @@ public class Vehicle {
     @JoinColumn(name = "station_name", referencedColumnName = "name")
     private Station station;
 
+     @OneToMany(mappedBy = "vehicle", cascade = CascadeType.ALL)
+    private List<SolvedBy> solvedBIES = new ArrayList<>();
+
+
     @OneToMany(mappedBy = "vehicle", cascade = CascadeType.ALL)
     private List<AssignTo> assignTos = new ArrayList<>();
 
