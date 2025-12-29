@@ -14,12 +14,15 @@ import com.example.esd_backend.repository.VehicleRepository;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class AutoAssign {
@@ -30,12 +33,22 @@ public class AutoAssign {
     private final IncidentRepository incidentRepository;
     private final AssignToRepository assignToRepository;
     private final SolvedByRepository solvedByRepository;
+    private final NotificationService notificationService;
+    private final RoutingService routingService;
 
-    public AutoAssign(VehicleRepository vehicleRepository, IncidentRepository incidentRepository,AssignToRepository assignToRepository, SolvedByRepository solvedByRepository) {
+    public AutoAssign(VehicleRepository vehicleRepository,
+                      IncidentRepository incidentRepository,
+                      AssignToRepository assignToRepository,
+                      SolvedByRepository solvedByRepository,
+                      NotificationService notificationService,
+                      RoutingService routingService
+    ) {
         this.vehicleRepository = vehicleRepository;
         this.incidentRepository = incidentRepository;
         this.assignToRepository = assignToRepository;
         this.solvedByRepository = solvedByRepository;
+        this.notificationService = notificationService;
+        this.routingService = routingService;
     }
 
     @Transactional
@@ -115,6 +128,10 @@ public class AutoAssign {
         int currentTotal = getAssignedCapacity(incidentId);
         int required = incident.getCapacity() != null ? incident.getCapacity() : 0;
         System.out.println("finsh");
+
+
+        // Create a payload for the driver
+       notificationService.notifyDriver(incident,vehicle);
 
         if (currentTotal >= required) {
             incident.setStatus(IncidentStatus.DISPATCHED);
