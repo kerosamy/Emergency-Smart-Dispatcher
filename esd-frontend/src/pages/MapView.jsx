@@ -102,13 +102,13 @@ export default function MapView() {
         <ListGroup title="Stations" items={stations} />
       </div>
 
-      {/* Map */}
-      <MapContainer
-        center={[31, 31]}
-        zoom={14}
-        className="h-full w-full bg-gray-950 outline-none"
-        zoomControl={false}
-      >
+        <MapContainer
+          center={[31, 31]}
+          zoom={14}
+          className="h-full w-full bg-gray-950 outline-none"
+          zoomControl={false}
+          key="main-map" // fixed key
+        >
         <TileLayer
           attribution="&copy; Stadia Maps"
           url="https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
