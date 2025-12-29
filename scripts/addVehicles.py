@@ -1,26 +1,34 @@
 import requests
 import random
 
-URL = "http://localhost:8080/vehicles/add"   # change if needed
-HEADERS = {
-    "Content-Type": "application/json"
-}
+def create_vehicles(n, station_count):
+    """
+    Create `n` vehicles and assign them randomly to stations.
 
-
-
-for i in range(1, 10):
-    index = random.randint(1, 9)
-
-    vehicle_data = {
-        "capacity": random.randint(1, 10),
-        "vehicleStatus": "AVAILABLE",
-        "stationName": f"Station-{index}",
-        "responderEmail": f"user{i}@example.com"
+    :param n: Number of vehicles to create
+    :param station_count: Number of existing stations to pick from
+    """
+    URL = "http://localhost:8080/vehicles/add"  # change if needed
+    HEADERS = {
+        "Content-Type": "application/json"
     }
 
-    response = requests.post(URL, json=vehicle_data, headers=HEADERS)
+    for i in range(1, n + 1):
+        index = random.randint(1, station_count)
 
-    if response.status_code in (200, 201):
-        print(f"✅ Vehicle {i} created")
-    else:
-        print(f"❌ Failed Vehicle {i} → {response.status_code}, {response.text}")
+        vehicle_data = {
+            "capacity": random.randint(1, 10),
+            "vehicleStatus": "AVAILABLE",
+            "stationName": f"Station-{index}",
+            "responderEmail": f"user{i}@example.com"
+        }
+
+        response = requests.post(URL, json=vehicle_data, headers=HEADERS)
+
+        if response.status_code in (200, 201):
+            print(f"✅ Vehicle {i} created")
+        else:
+            print(f"❌ Failed Vehicle {i} → {response.status_code}, {response.text}")
+
+# Example usage:
+# create_vehicles(10, 9)  # 10 vehicles, stations are Station-1 to Station-9

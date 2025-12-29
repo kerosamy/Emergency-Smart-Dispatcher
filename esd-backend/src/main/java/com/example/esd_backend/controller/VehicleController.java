@@ -5,7 +5,6 @@ import com.example.esd_backend.dto.*;
 import com.example.esd_backend.model.Vehicle;
 import com.example.esd_backend.service.VehicleService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,8 +20,9 @@ public class VehicleController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<Vehicle>  addVehicle(@RequestBody VehicleDto vehicleDto) {
-        return ResponseEntity.ok(vehicleService.addVehicle(vehicleDto));
+    public ResponseEntity<Void>  addVehicle(@RequestBody VehicleDto vehicleDto) {
+        vehicleService.addVehicle(vehicleDto);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/unassigned")
@@ -56,5 +56,11 @@ public class VehicleController {
     @GetMapping("/locations")
     public ResponseEntity<List<VehicleLocationDto>> getAllVehicleLocations() {
         return ResponseEntity.ok(vehicleService.getAllVehicleLocations());
+    }
+
+    @PostMapping("/move")
+    public ResponseEntity<Void>moveVehicle (@RequestBody VehicleLocationDto dto){
+        vehicleService.moveVehicle(dto);
+        return ResponseEntity.ok().build();
     }
 }
