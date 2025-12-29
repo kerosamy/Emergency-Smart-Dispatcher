@@ -134,14 +134,14 @@ export default function Reports() {
   return (
     <div className="w-full min-h-screen relative bg-black overflow-hidden flex flex-col justify-start items-center p-6">
       {/* Background gradients */}
-      <div className="absolute inset-0 bg-gradient-to-br from-purple-900 via-black to-indigo-900"></div>
-      <div className="absolute -top-1/4 -left-1/4 w-[600px] h-[600px] bg-purple-700 rounded-full filter blur-[200px] opacity-50 animate-pulse"></div>
-      <div className="absolute -bottom-1/4 -right-1/4 w-[600px] h-[600px] bg-indigo-700 rounded-full filter blur-[200px] opacity-50 animate-pulse"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-red-900 via-black to-blue-900"></div>
+      <div className="absolute -top-1/4 -left-1/4 w-[600px] h-[600px] bg-red-700 rounded-full filter blur-[200px] opacity-50 animate-pulse"></div>
+      <div className="absolute -bottom-1/4 -right-1/4 w-[600px] h-[600px] bg-blue-700 rounded-full filter blur-[200px] opacity-50 animate-pulse"></div>
 
       {/* Content */}
       <div className="relative z-10 w-full max-w-7xl">
         {/* Title */}
-        <h1 className="text-4xl font-extrabold text-center text-purple-400 mb-8 animate-pulse">
+        <h1 className="text-4xl font-extrabold text-center text-red-400 mb-8 animate-pulse">
           Reports & Analytics
         </h1>
 
@@ -153,10 +153,10 @@ export default function Reports() {
         )}
 
         {/* Filters Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 bg-black/60 backdrop-blur-lg p-6 rounded-2xl border border-purple-500/30">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 bg-black/60 backdrop-blur-lg p-6 rounded-2xl border border-red-500/30">
           {/* Type Filter */}
           <div className="flex flex-col">
-            <label htmlFor="type-filter" className="text-purple-300 font-semibold mb-2 text-sm">
+            <label htmlFor="type-filter" className="text-red-300 font-semibold mb-2 text-sm">
               Incident Type
             </label>
             <select
@@ -167,7 +167,7 @@ export default function Reports() {
                 setTop10Vehicles([]);
                 setTop10Stations([]);
               }}
-              className="p-3 rounded-xl bg-black/50 border border-purple-500/50 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+              className="p-3 rounded-xl bg-black/50 border border-red-500/50 text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition"
             >
               <option value="">All Types</option>
               {incidentTypes.map((type) => (
@@ -180,7 +180,7 @@ export default function Reports() {
 
           {/* Year Filter */}
           <div className="flex flex-col">
-            <label htmlFor="year-filter" className="text-purple-300 font-semibold mb-2 text-sm">
+            <label htmlFor="year-filter" className="text-red-300 font-semibold mb-2 text-sm">
               Year
             </label>
             <select
@@ -190,7 +190,7 @@ export default function Reports() {
                 setSelectedYear(e.target.value);
                 setSelectedDay("");
               }}
-              className="p-3 rounded-xl bg-black/50 border border-purple-500/50 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+              className="p-3 rounded-xl bg-black/50 border border-red-500/50 text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition"
             >
               <option value="">Select Year</option>
               {availableYears.map((year) => (
@@ -203,7 +203,7 @@ export default function Reports() {
 
           {/* Month Filter */}
           <div className="flex flex-col">
-            <label htmlFor="month-filter" className="text-purple-300 font-semibold mb-2 text-sm">
+            <label htmlFor="month-filter" className="text-red-300 font-semibold mb-2 text-sm">
               Month
             </label>
             <select
@@ -214,7 +214,7 @@ export default function Reports() {
                 setSelectedDay("");
               }}
               disabled={!selectedYear}
-              className="p-3 rounded-xl bg-black/50 border border-purple-500/50 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-3 rounded-xl bg-black/50 border border-red-500/50 text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <option value="">Select Month</option>
               {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
@@ -229,7 +229,7 @@ export default function Reports() {
 
           {/* Day Filter */}
           <div className="flex flex-col">
-            <label htmlFor="day-filter" className="text-purple-300 font-semibold mb-2 text-sm">
+            <label htmlFor="day-filter" className="text-red-300 font-semibold mb-2 text-sm">
               Day
             </label>
             <select
@@ -237,7 +237,7 @@ export default function Reports() {
               value={selectedDay}
               onChange={(e) => setSelectedDay(e.target.value)}
               disabled={!selectedMonth || !selectedYear}
-              className="p-3 rounded-xl bg-black/50 border border-purple-500/50 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-3 rounded-xl bg-black/50 border border-red-500/50 text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <option value="">Select Day</option>
               {Array.from({ length: maxDays }, (_, i) => i + 1).map((day) => (
@@ -255,8 +255,8 @@ export default function Reports() {
         ) : stats ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
             {/* Fastest Response Time */}
-            <div className="bg-black/60 backdrop-blur-lg border-2 border-purple-500/50 rounded-2xl p-8 hover:border-purple-500 hover:shadow-lg hover:shadow-purple-500/20 transition transform hover:-translate-y-1">
-              <h3 className="text-purple-300 font-semibold text-lg mb-3">
+            <div className="bg-black/60 backdrop-blur-lg border-2 border-red-500/50 rounded-2xl p-8 hover:border-red-500 hover:shadow-lg hover:shadow-red-500/20 transition transform hover:-translate-y-1">
+              <h3 className="text-red-300 font-semibold text-lg mb-3">
                 Fastest Response Time
               </h3>
               <p className="text-3xl font-extrabold text-green-400">
@@ -265,18 +265,18 @@ export default function Reports() {
             </div>
 
             {/* Slowest Response Time */}
-            <div className="bg-black/60 backdrop-blur-lg border-2 border-purple-500/50 rounded-2xl p-8 hover:border-purple-500 hover:shadow-lg hover:shadow-purple-500/20 transition transform hover:-translate-y-1">
-              <h3 className="text-purple-300 font-semibold text-lg mb-3">
+            <div className="bg-black/60 backdrop-blur-lg border-2 border-red-500/50 rounded-2xl p-8 hover:border-red-500 hover:shadow-lg hover:shadow-red-500/20 transition transform hover:-translate-y-1">
+              <h3 className="text-red-300 font-semibold text-lg mb-3">
                 Slowest Response Time
               </h3>
-              <p className="text-3xl font-extrabold text-red-400">
+              <p className="text-3xl font-extrabold text-red-200">
                 {formatDuration(stats.maxResponseTime)}
               </p>
             </div>
 
             {/* Average Response Time */}
-            <div className="bg-black/60 backdrop-blur-lg border-2 border-purple-500/50 rounded-2xl p-8 hover:border-purple-500 hover:shadow-lg hover:shadow-purple-500/20 transition transform hover:-translate-y-1">
-              <h3 className="text-purple-300 font-semibold text-lg mb-3">
+            <div className="bg-black/60 backdrop-blur-lg border-2 border-red-500/50 rounded-2xl p-8 hover:border-red-500 hover:shadow-lg hover:shadow-red-500/20 transition transform hover:-translate-y-1">
+              <h3 className="text-red-300 font-semibold text-lg mb-3">
                 Average Response Time
               </h3>
               <p className="text-3xl font-extrabold text-blue-400">
@@ -295,8 +295,8 @@ export default function Reports() {
         {/* Top 10 Lists */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Top 10 Vehicles */}
-            <div className="bg-black/60 backdrop-blur-lg border-2 border-purple-500/30 rounded-2xl p-6 overflow-hidden">
-              <h2 className="text-2xl font-bold text-purple-400 mb-6 border-b border-purple-500/30 pb-4">
+            <div className="bg-black/60 backdrop-blur-lg border-2 border-red-500/30 rounded-2xl p-6 overflow-hidden">
+              <h2 className="text-2xl font-bold text-red-400 mb-6 border-b border-red-500/30 pb-4">
                 Top 10 Vehicles
               </h2>
               {loading ? (
@@ -305,20 +305,20 @@ export default function Reports() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-purple-500/30">
-                        <th className="text-left py-3 px-2 text-purple-300 font-semibold">
+                      <tr className="border-b border-red-500/30">
+                        <th className="text-left py-3 px-2 text-red-300 font-semibold">
                           Rank
                         </th>
-                        <th className="text-left py-3 px-2 text-purple-300 font-semibold">
+                        <th className="text-left py-3 px-2 text-red-300 font-semibold">
                           ID
                         </th>
-                        <th className="text-left py-3 px-2 text-purple-300 font-semibold">
+                        <th className="text-left py-3 px-2 text-red-300 font-semibold">
                           Capacity
                         </th>
-                        <th className="text-left py-3 px-2 text-purple-300 font-semibold">
+                        <th className="text-left py-3 px-2 text-red-300 font-semibold">
                           Driver
                         </th>
-                        <th className="text-left py-3 px-2 text-purple-300 font-semibold">
+                        <th className="text-left py-3 px-2 text-red-300 font-semibold">
                           Avg Response
                         </th>
                       </tr>
@@ -327,7 +327,7 @@ export default function Reports() {
                       {top10Vehicles.map((vehicle, index) => (
                         <tr
                           key={vehicle.id}
-                          className="border-b border-purple-500/20 hover:bg-purple-500/10 transition"
+                          className="border-b border-red-500/20 hover:bg-red-500/10 transition"
                         >
                           <td className="py-3 px-2 text-white/80">{index + 1}</td>
                           <td className="py-3 px-2 text-white/80">{vehicle.id}</td>
@@ -349,8 +349,8 @@ export default function Reports() {
             </div>
 
             {/* Top 10 Stations */}
-            <div className="bg-black/60 backdrop-blur-lg border-2 border-purple-500/30 rounded-2xl p-6 overflow-hidden">
-              <h2 className="text-2xl font-bold text-purple-400 mb-6 border-b border-purple-500/30 pb-4">
+            <div className="bg-black/60 backdrop-blur-lg border-2 border-red-500/30 rounded-2xl p-6 overflow-hidden">
+              <h2 className="text-2xl font-bold text-red-400 mb-6 border-b border-red-500/30 pb-4">
                 Top 10 Stations
               </h2>
               {loading ? (
@@ -359,23 +359,23 @@ export default function Reports() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-purple-500/30">
-                        <th className="text-left py-3 px-2 text-purple-300 font-semibold">
+                      <tr className="border-b border-red-500/30">
+                        <th className="text-left py-3 px-2 text-red-300 font-semibold">
                           Rank
                         </th>
-                        <th className="text-left py-3 px-2 text-purple-300 font-semibold">
+                        <th className="text-left py-3 px-2 text-red-300 font-semibold">
                           Name
                         </th>
-                        <th className="text-left py-3 px-2 text-purple-300 font-semibold">
+                        <th className="text-left py-3 px-2 text-red-300 font-semibold">
                           Type
                         </th>
-                        <th className="text-left py-3 px-2 text-purple-300 font-semibold">
+                        <th className="text-left py-3 px-2 text-red-300 font-semibold">
                           Lat
                         </th>
-                        <th className="text-left py-3 px-2 text-purple-300 font-semibold">
+                        <th className="text-left py-3 px-2 text-red-300 font-semibold">
                           Lon
                         </th>
-                        <th className="text-left py-3 px-2 text-purple-300 font-semibold">
+                        <th className="text-left py-3 px-2 text-red-300 font-semibold">
                           Avg Response
                         </th>
                       </tr>
@@ -384,7 +384,7 @@ export default function Reports() {
                       {top10Stations.map((station, index) => (
                         <tr
                           key={station.stationId}
-                          className="border-b border-purple-500/20 hover:bg-purple-500/10 transition"
+                          className="border-b border-red-500/20 hover:bg-red-500/10 transition"
                         >
                           <td className="py-3 px-2 text-white/80">{index + 1}</td>
                           <td className="py-3 px-2 text-white/80">{station.stationName}</td>
