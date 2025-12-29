@@ -47,6 +47,7 @@ public class IncidentService {
 
     @Transactional
     public void reportIncident(IncidentRequestDto request) {
+        System.out.println("DDDDD");
         Incident incident = new Incident();
         incident.setType(IncidentType.valueOf(request.getType()));
         incident.setLatitude(request.getLatitude());
@@ -63,9 +64,12 @@ public class IncidentService {
 //                .orElseThrow(() -> new RuntimeException("Reporter not found"));
 //
 //        incident.setReporter(reporter);
+        System.out.println("ssss");
 
         Incident savedIncident = incidentRepository.save(incident);
+        System.out.println("auto assign");
         autoAssign.handleNewIncident(savedIncident);
+        System.out.println("vehicle assign");
     }
 
     public IncidentResponseDto getIncidentById(Long incidentId) {

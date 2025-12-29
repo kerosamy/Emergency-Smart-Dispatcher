@@ -50,7 +50,7 @@ public class AutoAssign {
                         incident.getLongitude()
                         )))
                 .toList();
-
+        System.out.println( "size = " +availableVehicles.size());
         if (!availableVehicles.isEmpty()) {
             dispatchVehiclesForIncident (incident, availableVehicles);
         }
@@ -74,6 +74,8 @@ public class AutoAssign {
     public void dispatchVehiclesForIncident(Incident incident, List<Vehicle> availableVehicles) {
         int assignedCapacity = getAssignedCapacity(incident.getId());
         int requiredCapacity = incident.getCapacity() != null ? incident.getCapacity() : 0;
+        System.out.println(assignedCapacity);
+        System.out.println(requiredCapacity);
 
         for (Vehicle vehicle : availableVehicles) {
             if (assignedCapacity >= requiredCapacity) break;
@@ -86,6 +88,7 @@ public class AutoAssign {
     @Transactional
     public void assignVehicleToIncident(Long incidentId, Long vehicleId) {
         Incident incident = incidentRepository.findByIdForUpdate(incidentId);
+        System.out.println("dissipation now "+ incidentId+" " + vehicleId);
         Vehicle vehicle = vehicleRepository.findByIdForUpdate(vehicleId);
 
         if (vehicle.getVehicleStatus() != VehicleStatus.AVAILABLE) {
@@ -111,9 +114,11 @@ public class AutoAssign {
 
         int currentTotal = getAssignedCapacity(incidentId);
         int required = incident.getCapacity() != null ? incident.getCapacity() : 0;
+        System.out.println("finsh");
 
         if (currentTotal >= required) {
             incident.setStatus(IncidentStatus.DISPATCHED);
+            System.out.println("ok");
             incidentRepository.save(incident);
         }
     }
