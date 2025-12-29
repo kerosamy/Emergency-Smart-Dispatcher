@@ -1,8 +1,22 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useEffect } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { routes } from "./routes";
 import Layout from "./Components/Layout";
+import { wsService } from './services/websocketService';
 
 function App() {
+  useEffect(() => {
+    wsService.connect(
+      null, 
+      (status) => console.log("WS status:", status),
+      (message) => console.log("WS message:", message)
+    );
+
+    wsService.subscribe("/topic/test", (msg) => {
+      console.log("Received:", msg);
+    });
+  }, []); 
+
   return (
     <BrowserRouter>
       <Routes>

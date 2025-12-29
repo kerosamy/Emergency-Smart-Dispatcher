@@ -43,6 +43,7 @@ public class SecurityConfig {
                         .requestMatchers("/users/sign-in").permitAll()
                         // endpoints accessible by any authenticated user
                         .requestMatchers("/unassigned").authenticated()
+                        .requestMatchers("/auth/**", "/ws/**").permitAll()
 
                         // any other request requires authentication
                         .anyRequest().authenticated()
