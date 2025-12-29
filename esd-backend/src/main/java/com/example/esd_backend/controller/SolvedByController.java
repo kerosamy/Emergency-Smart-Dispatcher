@@ -52,6 +52,34 @@ public class SolvedByController {
         }
     }
 
+    @GetMapping("/report-time-stats")
+    public ResponseEntity<?> getReportTimeStats(
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) Integer day,
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) Integer year) {
+        
+        if (day != null && (month == null || year == null)) {
+            return ResponseEntity.badRequest()
+                .body("Day filter requires both month and year to be specified");
+        }
+        
+        if (month != null && year == null) {
+            return ResponseEntity.badRequest()
+                .body("Month filter requires year to be specified");
+        }
+
+        try {
+            List<ResponseTimeStatsDTO> results = analyticsService
+                .getReportTimeStatsByTypeDayMonth(type, day, month, year);
+            
+            return ResponseEntity.ok(results);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                .body("Error fetching analytics: " + e.getMessage());
+        }
+    }
+
     @GetMapping("/available-years")
     public ResponseEntity<?> getAvailableYears() {
         try {

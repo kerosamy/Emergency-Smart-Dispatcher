@@ -19,6 +19,7 @@ import com.itextpdf.text.pdf.PdfWriter;
 public class PDFGenerator {
     public static ByteArrayInputStream generateStatisticsPDF(String title,
                                              List<Object[]> stats,
+                                             List<Object[]> reportStats,
                                              List<Object[]> topVehicles,
                                              List<Object[]> topStations,
                                             ArrayList<String> headersVehicles,
@@ -59,6 +60,32 @@ public class PDFGenerator {
                 statsTable.addCell(row[2] != null ? row[2].toString() : "N/A");
             }
             document.add(statsTable);
+
+            // Add Report Time Statistics
+            if (reportStats != null && !reportStats.isEmpty()) {
+
+                PdfPTable reportStatsTable = new PdfPTable(3);
+                reportStatsTable.setWidthPercentage(100);
+                reportStatsTable.setSpacingBefore(10f);
+                reportStatsTable.setSpacingAfter(10f);
+
+                PdfPCell reportHeader1 = new PdfPCell(new Paragraph("Minimum Assignment Time", headerFont));
+                PdfPCell reportHeader2 = new PdfPCell(new Paragraph("Maximum Assignment Time", headerFont));
+                PdfPCell reportHeader3 = new PdfPCell(new Paragraph("Average Assignment Time", headerFont));
+                reportHeader1.setBackgroundColor(BaseColor.DARK_GRAY);
+                reportHeader2.setBackgroundColor(BaseColor.DARK_GRAY);
+                reportHeader3.setBackgroundColor(BaseColor.DARK_GRAY);
+                reportStatsTable.addCell(reportHeader1);
+                reportStatsTable.addCell(reportHeader2);
+                reportStatsTable.addCell(reportHeader3);
+
+                for(Object[] row : reportStats) {
+                    reportStatsTable.addCell(row[0] != null ? row[0].toString() : "N/A");
+                    reportStatsTable.addCell(row[1] != null ? row[1].toString() : "N/A");
+                    reportStatsTable.addCell(row[2] != null ? row[2].toString() : "N/A");
+                }
+                document.add(reportStatsTable);
+            }
 
             if (topVehicles != null && !topVehicles.isEmpty()) {
                 PdfPTable vehicleTable = new PdfPTable(topVehicles.get(0).length);

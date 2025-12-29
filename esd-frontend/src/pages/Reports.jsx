@@ -11,6 +11,7 @@ export default function Reports() {
 
   // Data states
   const [statsData, setStatsData] = useState(null);
+  const [reportTimeStats, setReportTimeStats] = useState(null);
   const [top10Vehicles, setTop10Vehicles] = useState([]);
   const [top10Stations, setTop10Stations] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -62,13 +63,27 @@ export default function Reports() {
     setLoading(true);
     setError("");
     try {
-      const stats = await ReportService.getResponseTimeStats(
+      // Fetch both response time and report time stats
+      const responseStats = await ReportService.getResponseTimeStats(
         selectedType || undefined,
         selectedDay ? parseInt(selectedDay) : undefined,
         selectedMonth ? parseInt(selectedMonth) : undefined,
         selectedYear ? parseInt(selectedYear) : undefined
       );
-      setStatsData(stats);
+      setStatsData(responseStats);
+
+      try {
+        const reportStats = await ReportService.getReportTimeStats(
+          selectedType || undefined,
+          selectedDay ? parseInt(selectedDay) : undefined,
+          selectedMonth ? parseInt(selectedMonth) : undefined,
+          selectedYear ? parseInt(selectedYear) : undefined
+        );
+        setReportTimeStats(reportStats);
+      } catch (reportErr) {
+        console.error("Error fetching report time stats:", reportErr);
+        setReportTimeStats(null);
+      }
 
       // Fetch top 10 lists
       if (selectedType) {
@@ -111,7 +126,19 @@ export default function Reports() {
     return null;
   };
 
+  const getReportStats = () => {
+    if (!reportTimeStats) return null;
+    if (Array.isArray(reportTimeStats) && reportTimeStats.length > 0) {
+      return reportTimeStats[0]; // Return first (only) element
+    }
+    if (reportTimeStats.maxResponseTime !== undefined) {
+      return reportTimeStats;
+    }
+    return null;
+  };
+
   const stats = getStats();
+  const reportStats = getReportStats();
 
   const handleExportPDF = async () => {
     if (!statsData || !top10Vehicles || !top10Stations) {
@@ -121,7 +148,7 @@ export default function Reports() {
     
     try {
       setExportLoading(true);
-      await ReportService.exportPDFReport(statsData, top10Vehicles, top10Stations);
+      await ReportService.exportPDFReport(statsData, reportTimeStats, top10Vehicles, top10Stations);
     } catch (err) {
       console.error("Error exporting PDF:", err);
       alert("Failed to export PDF");
@@ -262,25 +289,15 @@ export default function Reports() {
         {/* Stats Cards */}
         {loading ? (
           <div className="text-center text-white/60 py-12 text-lg">Loading data...</div>
-        ) : stats ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        ) : stats || reportStats ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
             {/* Fastest Response Time */}
             <div className="bg-black/60 backdrop-blur-lg border-2 border-red-500/50 rounded-2xl p-8 hover:border-red-500 hover:shadow-lg hover:shadow-red-500/20 transition transform hover:-translate-y-1">
               <h3 className="text-red-300 font-semibold text-lg mb-3">
                 Fastest Response Time
               </h3>
               <p className="text-3xl font-extrabold text-green-400">
-                {stats.minResponseTime || "N/A"}
-              </p>
-            </div>
-
-            {/* Slowest Response Time */}
-            <div className="bg-black/60 backdrop-blur-lg border-2 border-red-500/50 rounded-2xl p-8 hover:border-red-500 hover:shadow-lg hover:shadow-red-500/20 transition transform hover:-translate-y-1">
-              <h3 className="text-red-300 font-semibold text-lg mb-3">
-                Slowest Response Time
-              </h3>
-              <p className="text-3xl font-extrabold text-red-200">
-                {stats.maxResponseTime || "N/A"}
+                {stats?.minResponseTime || "N/A"}
               </p>
             </div>
 
@@ -290,7 +307,49 @@ export default function Reports() {
                 Average Response Time
               </h3>
               <p className="text-3xl font-extrabold text-blue-400">
-                {stats.avgResponseTime || "N/A"}
+                {stats?.avgResponseTime || "N/A"}
+              </p>
+            </div>
+
+            {/* Slowest Response Time */}
+            <div className="bg-black/60 backdrop-blur-lg border-2 border-red-500/50 rounded-2xl p-8 hover:border-red-500 hover:shadow-lg hover:shadow-red-500/20 transition transform hover:-translate-y-1">
+              <h3 className="text-red-300 font-semibold text-lg mb-3">
+                Slowest Response Time
+              </h3>
+              <p className="text-3xl font-extrabold text-red-200">
+                {stats?.maxResponseTime || "N/A"}
+              </p>
+            </div>
+
+
+            {/* Fastest Report Time */}
+            <div className="bg-black/60 backdrop-blur-lg border-2 border-blue-500/50 rounded-2xl p-8 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/20 transition transform hover:-translate-y-1">
+              <h3 className="text-blue-300 font-semibold text-lg mb-3">
+                Fastest Assignment Time
+              </h3>
+              <p className="text-3xl font-extrabold text-green-400">
+                {reportStats?.minResponseTime || "N/A"}
+              </p>
+            </div>
+
+
+            {/* Average Report Time */}
+            <div className="bg-black/60 backdrop-blur-lg border-2 border-blue-500/50 rounded-2xl p-8 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/20 transition transform hover:-translate-y-1">
+              <h3 className="text-blue-300 font-semibold text-lg mb-3">
+                Average Assignment Time
+              </h3>
+              <p className="text-3xl font-extrabold text-blue-400">
+                {reportStats?.avgResponseTime || "N/A"}
+              </p>
+            </div>
+
+
+            <div className="bg-black/60 backdrop-blur-lg border-2 border-purple-500/50 rounded-2xl p-8 hover:border-purple-500 hover:shadow-lg hover:shadow-purple-500/20 transition transform hover:-translate-y-1">
+              <h3 className="text-purple-300 font-semibold text-lg mb-3">
+                Slowest Assignment Time
+              </h3>
+              <p className="text-3xl font-extrabold text-purple-400">
+                {reportStats?.maxResponseTime || "N/A"}
               </p>
             </div>
           </div>

@@ -13,82 +13,14 @@ public class SolvedByMapper {
         List<ResponseTimeStatsDTO> dtos = new ArrayList<>();
         
         for (Object[] row : rawResults) {
+            // Query returns: [max, min, avg]
             ResponseTimeStatsDTO dto = ResponseTimeStatsDTO.builder()
-                .type((String) row[0])
-                .maxResponseTime(formatDuration(((Number) row[1]).longValue()))
-                .minResponseTime(formatDuration(((Number) row[2]).longValue()))
-                .avgResponseTime(formatDuration(((Number) row[3]).longValue()))
-                .totalIncidents(((Number) row[4]).longValue())
+                .maxResponseTime(formatDuration(((Number) row[0]).doubleValue()))
+                .minResponseTime(formatDuration(((Number) row[1]).doubleValue()))
+                .avgResponseTime(formatDuration(((Number) row[2]).doubleValue()))
                 .build();
             
             dtos.add(dto);
-        }
-        
-        return dtos;
-    }
-
-    public List<ResponseTimeStatsDTO> convertToDTOWithMonthYear(List<Object[]> rawResults) {
-        List<ResponseTimeStatsDTO> dtos = new ArrayList<>();
-        
-        for (Object[] row : rawResults) {
-            // Check if this is an aggregated result (5 elements instead of 7)
-            if (row.length == 5) {
-                // Aggregated: [type, max, min, avg, count]
-                ResponseTimeStatsDTO dto = ResponseTimeStatsDTO.builder()
-                    .type((String) row[0])
-                    .maxResponseTime(formatDuration(((Number) row[1]).longValue()))
-                    .minResponseTime(formatDuration(((Number) row[2]).longValue()))
-                    .avgResponseTime(formatDuration(((Number) row[3]).longValue()))
-                    .totalIncidents(((Number) row[4]).longValue())
-                    .build();
-                dtos.add(dto);
-            } else {
-                // Normal: [type, month, year, max, min, avg, count]
-                ResponseTimeStatsDTO dto = ResponseTimeStatsDTO.builder()
-                    .type((String) row[0])
-                    .month(((Number) row[1]).intValue())
-                    .year(((Number) row[2]).intValue())
-                    .maxResponseTime(formatDuration(((Number) row[3]).longValue()))
-                    .minResponseTime(formatDuration(((Number) row[4]).longValue()))
-                    .avgResponseTime(formatDuration(((Number) row[5]).longValue()))
-                    .totalIncidents(((Number) row[6]).longValue())
-                    .build();
-                dtos.add(dto);
-            }
-        }
-        
-        return dtos;
-    }
-
-    public List<ResponseTimeStatsDTO> convertToDTOWithFullDate(List<Object[]> rawResults) {
-        List<ResponseTimeStatsDTO> dtos = new ArrayList<>();
-        
-        for (Object[] row : rawResults) {
-            // Check if this is an aggregated result (5 elements instead of 8)
-            if (row.length == 5) {
-                // Aggregated: [type, max, min, avg, count]
-                ResponseTimeStatsDTO dto = ResponseTimeStatsDTO.builder()
-                    .type((String) row[0])
-                    .maxResponseTime(formatDuration(((Number) row[1]).longValue()))
-                    .minResponseTime(formatDuration(((Number) row[2]).longValue()))
-                    .avgResponseTime(formatDuration(((Number) row[3]).longValue()))
-                    .totalIncidents(((Number) row[4]).longValue())
-                    .build();
-                dtos.add(dto);
-            } else {
-                // Normal: [type, day, month, year, max, min, avg, count]
-                ResponseTimeStatsDTO dto = ResponseTimeStatsDTO.builder()
-                    .type((String) row[0])
-                    .day(((Number) row[1]).intValue())
-                    .month(((Number) row[2]).intValue())
-                    .year(((Number) row[3]).intValue())
-                    .maxResponseTime(formatDuration(((Number) row[4]).longValue()))
-                    .minResponseTime(formatDuration(((Number) row[5]).longValue()))
-                    .avgResponseTime(formatDuration(((Number) row[6]).longValue()))
-                    .totalIncidents(((Number) row[7]).longValue())
-                    .build();
-                dtos.add(dto);
-            }
         }
         
         return dtos;
@@ -157,54 +89,6 @@ public class SolvedByMapper {
         }
         
         return dtos;
-    }
-
-    public List<Object[]> aggregateRawResults(List<Object[]> rawResults, int maxIdx, int minIdx, int avgIdx, int countIdx) {
-        if (rawResults == null || rawResults.isEmpty()) {
-            return rawResults; // Return empty if no data
-        }
-        
-        if (rawResults.size() == 1) {
-            return rawResults; // Already single row, no need to aggregate
-        }
-
-        double maxVal = Double.NEGATIVE_INFINITY;
-        double minVal = Double.POSITIVE_INFINITY;
-        double sumAvg = 0;
-        long totalCount = 0;
-
-        for (Object[] row : rawResults) {
-            if (row[maxIdx] == null || row[minIdx] == null || row[avgIdx] == null || row[countIdx] == null) {
-                continue; // Skip null rows
-            }
-            
-            double max = ((Number) row[maxIdx]).doubleValue();
-            double min = ((Number) row[minIdx]).doubleValue();
-            double avg = ((Number) row[avgIdx]).doubleValue();
-            long count = ((Number) row[countIdx]).longValue();
-
-            maxVal = Math.max(maxVal, max);
-            minVal = Math.min(minVal, min);
-            sumAvg += avg * count; // weighted average
-            totalCount += count;
-        }
-
-        if (totalCount == 0) {
-            return rawResults; // No data to aggregate, return original
-        }
-
-        double aggregatedAvg = sumAvg / totalCount;
-
-        Object[] aggregated = new Object[5];
-        aggregated[0] = "ALL"; // type
-        aggregated[1] = (long) maxVal;
-        aggregated[2] = (long) minVal;
-        aggregated[3] = (long) aggregatedAvg;
-        aggregated[4] = totalCount;
-
-        List<Object[]> result = new ArrayList<>();
-        result.add(aggregated);
-        return result;
     }
 
 }

@@ -21,6 +21,21 @@ class ReportService {
     return res.data;
   }
 
+  async getReportTimeStats(type, day, month, year) {
+    const token = UserService.getToken();
+    const params = {};
+    if (type) params.type = type;
+    if (day) params.day = day;
+    if (month) params.month = month;
+    if (year) params.year = year;
+
+    const res = await axios.get(`${API_URL}/report-time-stats`, {
+      params,
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return res.data;
+  }
+
   async getAvailableYears() {
     const token = UserService.getToken();
 
@@ -55,10 +70,10 @@ class ReportService {
     return res.data;
   }
 
-  async exportPDFReport(stats, vehicles, stations) {
+  async exportPDFReport(stats, reportStats, vehicles, stations) {
     const token = UserService.getToken();
     const response = await axios.post(`${API_URL}/export-pdf`, 
-      { stats, vehicles, stations },
+      { stats, reportStats, vehicles, stations },
       {
         headers: { Authorization: `Bearer ${token}` },
         responseType: 'blob'

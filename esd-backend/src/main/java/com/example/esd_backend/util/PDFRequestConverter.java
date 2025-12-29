@@ -12,11 +12,13 @@ public class PDFRequestConverter {
 
     public static class PDFRawData {
         public List<Object[]> stats;
+        public List<Object[]> reportStats;
         public List<Object[]> vehicles;
         public List<Object[]> stations;
 
-        public PDFRawData(List<Object[]> stats, List<Object[]> vehicles, List<Object[]> stations) {
+        public PDFRawData(List<Object[]> stats, List<Object[]> reportStats, List<Object[]> vehicles, List<Object[]> stations) {
             this.stats = stats;
+            this.reportStats = reportStats;
             this.vehicles = vehicles;
             this.stations = stations;
         }
@@ -26,12 +28,15 @@ public class PDFRequestConverter {
         @SuppressWarnings("unchecked")
         List<Map<String, Object>> statsData = (List<Map<String, Object>>) requestBody.get("stats");
         @SuppressWarnings("unchecked")
+        List<Map<String, Object>> reportStatsData = (List<Map<String, Object>>) requestBody.get("reportStats");
+        @SuppressWarnings("unchecked")
         List<Map<String, Object>> vehiclesData = (List<Map<String, Object>>) requestBody.get("vehicles");
         @SuppressWarnings("unchecked")
         List<Map<String, Object>> stationsData = (List<Map<String, Object>>) requestBody.get("stations");
 
         return new PDFRawData(
             statsToRaw(statsData),
+            statsToRaw(reportStatsData),
             vehiclesToRaw(vehiclesData),
             stationsToRaw(stationsData)
         );
