@@ -1,10 +1,7 @@
 package com.example.esd_backend.controller;
 
 
-import com.example.esd_backend.dto.UnassignedVehicleDto;
-import com.example.esd_backend.dto.VehicleAssignmentDto;
-import com.example.esd_backend.dto.VehicleDto;
-import com.example.esd_backend.dto.VehicleListDto;
+import com.example.esd_backend.dto.*;
 import com.example.esd_backend.model.Vehicle;
 import com.example.esd_backend.service.VehicleService;
 import org.springframework.http.ResponseEntity;
@@ -54,5 +51,10 @@ public class VehicleController {
     public ResponseEntity<Void> deleteVehicle(@PathVariable Long id) {
         vehicleService.deleteVehicle(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/locations")
+    public ResponseEntity<List<VehicleLocationDto>> getAllVehicleLocations() {
+        return ResponseEntity.ok(vehicleService.getAllVehicleLocations());
     }
 }

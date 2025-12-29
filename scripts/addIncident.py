@@ -27,7 +27,7 @@ def report_incident(incident):
         print(f"Failed to report: {incident}, Status: {response.status_code}, Response: {response.text}")
 
 def main():
-    for _ in range(100):
+    for _ in range(10):
         incident = generate_incident()
         report_incident(incident)
 

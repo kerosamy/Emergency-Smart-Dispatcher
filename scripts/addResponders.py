@@ -5,7 +5,7 @@ HEADERS = {
     "Content-Type": "application/json"
 }
 
-for i in range(1, 101):
+for i in range(1, 10):
     user_data = {
         "name": f"User{i}",
         "email": f"user{i}@example.com",

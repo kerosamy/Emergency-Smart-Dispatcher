@@ -9,139 +9,211 @@ import StationService from "../services/StationService";
 import IncidentService from "../services/IncidentService";
 import RoutingLayer from "../Components/RoutingLayer.jsx";
 
-// LOCAL ICONS
-import carIconUrl from "../assets/police-car.png";
-import fireIconUrl from "../assets/incident.png";
-import stationIconUrl from "../assets/fire-station.png";
+// ---------------------------------------------------
+// ICON IMPORTS
+// ---------------------------------------------------
+import policeCar from "../assets/police-car.png";
+import fireTruck from "../assets/fire-truck.png";
+import ambulance from "../assets/ambulance.png";
 
-// Create icons
+import policeStation from "../assets/police-station.png";
+import fireStation from "../assets/fire-station.png";
+import hospital from "../assets/hospital.png";
+
+import incidentFire from "../assets/incident-fire.png";
+import incidentMedical from "../assets/incident-medical.png";
+import incidentCrime from "../assets/incident-crime.png";
+
+// ---------------------------------------------------
+// ICON PICKING LOGIC
+// ---------------------------------------------------
 const createLocalIcon = (url) =>
   L.icon({
     iconUrl: url,
-    iconSize: [40, 40],
-    iconAnchor: [20, 20],
-    popupAnchor: [0, -20],
+    iconSize: [25, 25],
+    iconAnchor: [17, 17],
+    popupAnchor: [0, -15],
   });
 
-const ICONS = {
-  vehicle: createLocalIcon(carIconUrl),
-  incident: createLocalIcon(fireIconUrl),
-  station: createLocalIcon(stationIconUrl),
+const ASSET_PATHS = {
+  vehicles: {
+    "Police": policeCar,
+    "Fire": fireTruck,
+    "Ambulance": ambulance,
+    "default": policeCar
+  },
+  stations: {
+    "POLICE": policeStation,
+    "FIRE": fireStation,
+    "MEDICAL": hospital,
+    "default": fireStation
+  },
+  incidents: {
+    "fire": incidentFire,
+    "medical": incidentMedical,
+    "crime": incidentCrime,
+    "default": incidentFire
+  }
+};
+
+const getIcon = (category, type) => {
+  const iconUrl = ASSET_PATHS[category]?.[type] || ASSET_PATHS[category]?.["default"];
+  return createLocalIcon(iconUrl);
 };
 
 export default function MapView() {
   const [vehicles, setVehicles] = useState([]);
   const [stations, setStations] = useState([]);
   const [incidents, setIncidents] = useState([]);
-  const [assignments, setAssignments] = useState([]); // vehicleId → incidentId
+  const [assignments, setAssignments] = useState([]);
 
-  // ---------------------------------------------------
-  // Load all required data
-  // ---------------------------------------------------
+  // 1. Initial Data Load (Stations, Incidents, Assignments, and Initial Vehicle Metadata)
   useEffect(() => {
-    const loadData = async () => {
+    const loadInitialData = async () => {
       try {
-        // Vehicles
+        // Load Vehicles
         const vehData = await VehicleService.getAllVehicles();
-        const validVehicles = vehData
+        const initialVehicles = vehData
           .map((v) => ({
             id: v.id,
             name: v.vehicleType || `Vehicle ${v.id}`,
+            type: v.vehicleType,
+            status: v.vehicleStatus,
+            responder: v.responder,
             lat: parseFloat(v.stationLatitude),
-            lng: parseFloat(v.stationLongitude)+0.002,
+            lng: parseFloat(v.stationLongitude),
           }))
           .filter((v) => !isNaN(v.lat) && !isNaN(v.lng));
-        setVehicles(validVehicles);
+        setVehicles(initialVehicles);
 
-        // Stations
+        // Load Stations
         const stationData = await StationService.getAllStations();
         const validStations = stationData
           .map((s) => ({
             id: s.id,
             name: s.name,
+            type: s.type,
             lat: parseFloat(s.latitude),
             lng: parseFloat(s.longitude),
           }))
           .filter((s) => !isNaN(s.lat) && !isNaN(s.lng));
         setStations(validStations);
 
-        // Incidents
+        // Load Incidents
         const incidentData = await IncidentService.getAllIncidents();
         const validIncidents = incidentData
           .map((i) => ({
             id: i.id,
-            name: i.name || `Incident ${i.id}`,
+            name: `${i.type} at ${i.reporterName}'s location`,
+            type: i.type,
+            severity: i.severity,
+            status: i.status,
             lat: parseFloat(i.latitude),
             lng: parseFloat(i.longitude),
-            severity: i.severity || "Unknown",
           }))
           .filter((i) => !isNaN(i.lat) && !isNaN(i.lng));
         setIncidents(validIncidents);
 
-        // Assignments (from API)
+        // Load Assignments
         const assignmentData = await IncidentService.getAssignments();
-        setAssignments(assignmentData); // contains vehicleId + incidentId
+        setAssignments(assignmentData);
 
       } catch (err) {
-        console.error("Error loading map data:", err);
+        console.error("Error loading initial map data:", err);
       }
     };
 
-    loadData();
+    loadInitialData();
   }, []);
 
-  // ---------------------------------------------------
-  // Render
-  // ---------------------------------------------------
+  // 2. Real-time Polling: Update vehicle positions from Redis every 3 seconds
+  useEffect(() => {
+    const pollVehicleLocations = async () => {
+      try {
+        const liveLocations = await VehicleService.getVehicleLocations();
+        console.log(liveLocations);
+        
+        setVehicles((prevVehicles) => 
+          prevVehicles.map((v) => {
+            const match = liveLocations.find((loc) => loc.id === v.id);
+            if (match) {
+              return { 
+                ...v, 
+                lat: match.latitude, 
+                lng: match.longitude 
+              };
+            }
+            return v;
+          })
+        );
+      } catch (err) {
+        console.error("Error polling vehicle locations:", err);
+      }
+    };
+
+    const interval = setInterval(pollVehicleLocations, 500);
+    return () => clearInterval(interval); // Cleanup on component unmount
+  }, []);
+
   return (
     <div className="flex w-full h-screen">
-      {/* Sidebar */}
-      <div className="w-80 flex-shrink-0 flex flex-col border-r-2 border-red-600 bg-[#191919] p-3">
+      <div className="w-80 flex-shrink-0 flex flex-col border-r-2 border-red-600 bg-[#191919] p-3 overflow-y-auto">
         <ListGroup title="Vehicles" items={vehicles} />
         <ListGroup title="Incidents" items={incidents} />
         <ListGroup title="Stations" items={stations} />
       </div>
 
-        <MapContainer
-          center={[31, 31]}
-          zoom={14}
-          className="h-full w-full bg-gray-950 outline-none"
-          zoomControl={false}
-          key="main-map" // fixed key
-        >
+      <MapContainer
+        center={[26, 31]}
+        zoom={6}
+        className="h-full w-full bg-gray-950 outline-none"
+        zoomControl={false}
+      >
         <TileLayer
           attribution="&copy; Stadia Maps"
           url="https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
         />
 
-        {/* Vehicles */}
         {vehicles.map((v) => (
-          <Marker key={v.id} position={[v.lat, v.lng]} icon={ICONS.vehicle}>
-            <Popup>{v.name}</Popup>
+         <Marker
+          key={`veh-${v.id}-${v.lat}-${v.lng}`}
+          position={[v.lat, v.lng]}
+          icon={getIcon("vehicles", v.type)}
+        >
+            <Popup>
+              <strong>{v.name}</strong><br />
+              Status: {v.status}<br />
+              Responder: {v.responder}
+            </Popup>
           </Marker>
         ))}
 
-        {/* Stations */}
+        {/* Station Markers */}
         {stations.map((s) => (
-          <Marker key={s.id} position={[s.lat, s.lng]} icon={ICONS.station}>
-            <Popup>{s.name}</Popup>
+          <Marker key={`sta-${s.id}`} position={[s.lat, s.lng]} icon={getIcon("stations", s.type)}>
+            <Popup>
+              <strong>{s.name}</strong><br />
+              Type: {s.type}
+            </Popup>
           </Marker>
         ))}
 
-        {/* Incidents */}
+        {/* Incident Markers */}
         {incidents.map((i) => (
-          <Marker key={i.id} position={[i.lat, i.lng]} icon={ICONS.incident}>
-            <Popup>{i.name}</Popup>
+          <Marker key={`inc-${i.id}`} position={[i.lat, i.lng]} icon={getIcon("incidents", i.type)}>
+            <Popup>
+              <strong>Incident #{i.id}</strong><br />
+              Type: {i.type}<br />
+              Severity: {i.severity}<br />
+              Status: {i.status}
+            </Popup>
           </Marker>
         ))}
 
-        {/* ---------------------------------------------------
-            ROUTES BASED ON API ASSIGNMENTS
-           --------------------------------------------------- */}
+        {/* Live Routes - Automatically updates when vehicle positions change */}
         {assignments.map((a, index) => {
           const vehicle = vehicles.find((v) => v.id === a.vehicleId);
           const incident = incidents.find((i) => i.id === a.incidentId);
-
           if (!vehicle || !incident) return null;
 
           return (
@@ -157,24 +229,24 @@ export default function MapView() {
   );
 }
 
-// ---------------------------------------------------
-// Sidebar list
-// ---------------------------------------------------
 function ListGroup({ title, items }) {
   return (
-    <div>
-      <h2 className="text-xs font-bold text-red-400 uppercase mb-2">
+    <div className="mb-6">
+      <h2 className="text-xs font-bold text-red-400 uppercase mb-2 sticky top-0 bg-[#191919] py-1">
         {title}
       </h2>
       {items.map((item) => (
         <div
           key={`${item.id}`}
-          className="mb-2 p-2 bg-black/50 text-red-300 rounded"
+          className="mb-2 p-2 bg-black/50 text-red-300 rounded border border-transparent hover:border-red-900 transition-colors"
         >
-          {item.name}
+          <div className="font-bold text-sm">{item.name}</div>
+          <div className="flex justify-between items-center mt-1">
+             <span className="text-[10px] text-gray-500">{item.type}</span>
+             {item.severity && <span className="text-[10px] px-1 bg-red-900/30 rounded">Lv. {item.severity}</span>}
+          </div>
         </div>
       ))}
     </div>
   );
 }
-

@@ -8,8 +8,8 @@ HEADERS = {
 
 
 
-for i in range(1, 101):
-    index = random.randint(1, 100)
+for i in range(1, 10):
+    index = random.randint(1, 9)
 
     vehicle_data = {
         "capacity": random.randint(1, 10),
