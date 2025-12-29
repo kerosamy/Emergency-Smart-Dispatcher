@@ -12,7 +12,7 @@ maxX = 31.7
 minY = 25.0
 maxY = 35.9
 
-for i in range(1, 101):
+for i in range(1, 10):
     station_data = {
         "name": f"Station-{i}",
         "latitude": round(random.uniform(minX, maxX), 10),

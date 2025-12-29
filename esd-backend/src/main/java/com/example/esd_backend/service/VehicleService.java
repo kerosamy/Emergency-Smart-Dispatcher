@@ -1,9 +1,6 @@
 package com.example.esd_backend.service;
 
-import com.example.esd_backend.dto.UnassignedVehicleDto;
-import com.example.esd_backend.dto.VehicleAssignmentDto;
-import com.example.esd_backend.dto.VehicleDto;
-import com.example.esd_backend.dto.VehicleListDto;
+import com.example.esd_backend.dto.*;
 import com.example.esd_backend.mapper.VehicleMapper;
 import com.example.esd_backend.model.Station;
 import com.example.esd_backend.model.User;
@@ -14,10 +11,12 @@ import com.example.esd_backend.repository.UserRepository;
 import com.example.esd_backend.repository.VehicleRepository;
 
 import jakarta.transaction.Transactional;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class VehicleService {
@@ -25,12 +24,18 @@ public class VehicleService {
     private final StationRepository stationRepository;
     private final UserRepository userRepository;
     private final AutoAssign autoAssign;
+    private final StringRedisTemplate redisTemplate; // Add this
 
-    public VehicleService(VehicleRepository vehicleRepository, StationRepository stationRepository, UserRepository userRepository, AutoAssign autoAssign) {
+    public VehicleService(VehicleRepository vehicleRepository,
+                          StationRepository stationRepository,
+                          UserRepository userRepository,
+                          AutoAssign autoAssign,
+                          StringRedisTemplate redisTemplate) {
         this.vehicleRepository = vehicleRepository;
         this.stationRepository = stationRepository;
         this.userRepository = userRepository;
         this.autoAssign = autoAssign;
+        this.redisTemplate = redisTemplate;
     }
 
     public Vehicle addVehicle(VehicleDto vehicleDto) {
@@ -47,8 +52,17 @@ public class VehicleService {
             vehicle.setDriver(responder);
         }
         station.getVehicles().add(vehicle);
+
+        Vehicle savedVehicle = vehicleRepository.save(vehicle);
+
+        // STEP 1: Save to Redis
+        String redisKey = "id:" + savedVehicle.getId();
+        String posValue = station.getLatitude() + "," + station.getLongitude();
+        redisTemplate.opsForValue().set(redisKey, posValue);
+        System.out.println("DEBUG: Vehicle " + savedVehicle.getId() + " initialized in Redis at " + posValue);
+
         autoAssign.handleNewVehicle(vehicle);
-        return vehicleRepository.save(vehicle);
+        return savedVehicle;
     }
 
     public List<UnassignedVehicleDto> getUnassignedVehicles() {
@@ -105,6 +119,30 @@ public class VehicleService {
             vehicle.setDriver(null); 
         }
         vehicleRepository.delete(vehicle);
+    }
+
+
+    public List<VehicleLocationDto> getAllVehicleLocations() {
+        // 1. Get all keys starting with "id:"
+        Set<String> keys = redisTemplate.keys("id:*");
+        List<VehicleLocationDto> locations = new ArrayList<>();
+
+        if (keys != null) {
+            for (String key : keys) {
+                String vehicleId = key.split(":")[1];
+                String posValue = (String) redisTemplate.opsForValue().get(key);
+
+                if (posValue != null) {
+                    String[] coords = posValue.split(",");
+                    locations.add(new VehicleLocationDto(
+                            Long.parseLong(vehicleId),
+                            Double.parseDouble(coords[0]), // latitude
+                            Double.parseDouble(coords[1])  // longitude
+                    ));
+                }
+            }
+        }
+        return locations;
     }
 
 }
