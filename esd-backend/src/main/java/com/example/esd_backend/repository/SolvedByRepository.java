@@ -33,7 +33,7 @@ public interface SolvedByRepository extends JpaRepository<SolvedBy, Long> {;
                " COUNT(*) as total_incidents " +
                "FROM incident i " +
                "JOIN assign_to a ON i.id = a.incident_id " +
-               "JOIN confirm c ON i.id = c.incident_id " +
+               "JOIN confirm c ON i.id = c.incident_id AND a.vehicle_id = c.vehicle_id " +
                "WHERE c.solution_time IS NOT NULL " +
                "  AND (:type IS NULL OR i.type = :type) " +
                "GROUP BY i.type", nativeQuery = true)
@@ -49,7 +49,7 @@ public interface SolvedByRepository extends JpaRepository<SolvedBy, Long> {;
                " COUNT(*) as total_incidents " +
                "FROM incident i " +
                "JOIN assign_to a ON i.id = a.incident_id " +
-               "JOIN confirm c ON i.id = c.incident_id " +
+               "JOIN confirm c ON i.id = c.incident_id AND a.vehicle_id = c.vehicle_id " +
                "WHERE c.solution_time IS NOT NULL AND a.assign_time IS NOT NULL " +
                "  AND EXTRACT(MONTH FROM c.solution_time) = :month " +
                "  AND EXTRACT(YEAR FROM c.solution_time) = :year " +
@@ -73,7 +73,7 @@ public interface SolvedByRepository extends JpaRepository<SolvedBy, Long> {;
                " COUNT(*) as total_incidents " +
                "FROM incident i " +
                "JOIN assign_to a ON i.id = a.incident_id " +
-               "JOIN confirm c ON i.id = c.incident_id " +
+               "JOIN confirm c ON i.id = c.incident_id AND a.vehicle_id = c.vehicle_id " +
                "WHERE c.solution_time IS NOT NULL " +
                "  AND EXTRACT(DAY FROM c.solution_time) = :day " +
                "  AND EXTRACT(MONTH FROM c.solution_time) = :month " +
@@ -101,7 +101,7 @@ public interface SolvedByRepository extends JpaRepository<SolvedBy, Long> {;
                " AVG(TIMESTAMPDIFF(SECOND, a.assign_time, c.solution_time)) as avg_response " +
                "FROM vehicle v " +
                "JOIN assign_to a ON v.id = a.vehicle_id " +
-               "JOIN confirm c ON v.id = c.vehicle_id " +
+               "JOIN confirm c ON v.id = c.vehicle_id AND a.incident_id = c.incident_id " +
                "LEFT JOIN user u ON v.user_id = u.id " +
                "WHERE c.solution_time IS NOT NULL " +
                "  AND (:stationType IS NULL OR v.station_type = :stationType) " +
@@ -119,7 +119,7 @@ public interface SolvedByRepository extends JpaRepository<SolvedBy, Long> {;
                "FROM station s " +
                "JOIN vehicle v ON s.name = v.station_name " +
                "JOIN assign_to a ON v.id = a.vehicle_id " +
-               "JOIN confirm c ON v.id = c.vehicle_id " +
+               "JOIN confirm c ON v.id = c.vehicle_id AND a.incident_id = c.incident_id " +
                "WHERE c.solution_time IS NOT NULL " +
                " AND (:stationType IS NULL OR s.type = :stationType) " +
                "GROUP BY s.id, s.name, s.type, s.latitude, s.longitude " +
