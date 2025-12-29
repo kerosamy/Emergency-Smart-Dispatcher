@@ -54,6 +54,24 @@ class ReportService {
 
     return res.data;
   }
+
+  async exportPDFReport(stats, vehicles, stations) {
+    const token = UserService.getToken();
+    const response = await axios.post(`${API_URL}/export-pdf`, 
+      { stats, vehicles, stations },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        responseType: 'blob'
+      }
+    );
+    
+    const url = window.URL.createObjectURL(response.data);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'analytics-report.pdf');
+    link.click();
+    window.URL.revokeObjectURL(url);
+  }
 }
 
 export default new ReportService();

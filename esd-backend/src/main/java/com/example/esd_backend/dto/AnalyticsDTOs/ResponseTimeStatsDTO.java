@@ -18,9 +18,9 @@ public class ResponseTimeStatsDTO {
     private Integer day;
     private Integer month;
     private Integer year;
-    private Long maxResponseTime;
-    private Long minResponseTime;
-    private Double avgResponseTime;
+    private String maxResponseTime;
+    private String minResponseTime;
+    private String avgResponseTime;
     
     private Long totalIncidents;
 }

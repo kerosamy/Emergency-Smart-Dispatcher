@@ -15,8 +15,9 @@ export default function Reports() {
   const [top10Stations, setTop10Stations] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [exportLoading, setExportLoading] = useState(false);
 
-  const incidentTypes = ["FIRE", "MEDICAL", "POLICE"];
+  const incidentTypes = ["FIRE", "MEDICAL", "CRIME"];
 
   // Initialize available years
   useEffect(() => {
@@ -39,6 +40,13 @@ export default function Reports() {
   };
 
   const maxDays = getDaysInMonth(parseInt(selectedMonth), parseInt(selectedYear));
+
+  // Map incident type to station/vehicle type
+  const mapIncidentTypeToStationType = (incidentType) => {
+    if (!incidentType) return null;
+    if (incidentType === "CRIME") return "POLICE";
+    return incidentType; // FIRE -> FIRE, MEDICAL -> MEDICAL
+  };
 
   // Fetch stats and lists
   useEffect(() => {
@@ -64,9 +72,10 @@ export default function Reports() {
 
       // Fetch top 10 lists
       if (selectedType) {
-        // If specific type selected, fetch for that type
-        const vehicles = await ReportService.getTop10Vehicles(selectedType);
-        const stations = await ReportService.getTop10Stations(selectedType);
+        // If specific type selected, fetch for that type (map CRIME to POLICE)
+        const stationType = mapIncidentTypeToStationType(selectedType);
+        const vehicles = await ReportService.getTop10Vehicles(stationType);
+        const stations = await ReportService.getTop10Stations(stationType);
         setTop10Vehicles(vehicles);
         setTop10Stations(stations);
       } else {
@@ -90,38 +99,11 @@ export default function Reports() {
     }
   };
 
-  // Format duration in milliseconds to readable string
-  const formatDuration = (ms) => {
-    if (!ms && ms !== 0) return "N/A";
-    const seconds = Math.floor(ms / 1000);
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
-
-    if (days > 0) return `${days}d ${hours % 24}h`;
-    if (hours > 0) return `${hours}h ${minutes % 60}m`;
-    if (minutes > 0) return `${minutes}m ${seconds % 60}s`;
-    return `${seconds}s`;
-  };
-
-  // Extract stats from response (handle both array and single object)
+  // Extract stats from response
   const getStats = () => {
     if (!statsData) return null;
     if (Array.isArray(statsData) && statsData.length > 0) {
-      // When type is selected, return first item
-      // When type is not selected (All Types), aggregate all types
-      if (selectedType) {
-        return statsData[0];
-      } else {
-        // Aggregate stats across all incident types
-        const aggregated = {
-          minResponseTime: Math.min(...statsData.map(s => s.minResponseTime || Infinity)),
-          maxResponseTime: Math.max(...statsData.map(s => s.maxResponseTime || 0)),
-          avgResponseTime: statsData.reduce((sum, s) => sum + (s.avgResponseTime || 0), 0) / statsData.length,
-          totalIncidents: statsData.reduce((sum, s) => sum + (s.totalIncidents || 0), 0)
-        };
-        return aggregated;
-      }
+      return statsData[0]; // Return first (only) element
     }
     if (statsData.maxResponseTime !== undefined) {
       return statsData;
@@ -130,6 +112,23 @@ export default function Reports() {
   };
 
   const stats = getStats();
+
+  const handleExportPDF = async () => {
+    if (!statsData || !top10Vehicles || !top10Stations) {
+      alert("No data available to export");
+      return;
+    }
+    
+    try {
+      setExportLoading(true);
+      await ReportService.exportPDFReport(statsData, top10Vehicles, top10Stations);
+    } catch (err) {
+      console.error("Error exporting PDF:", err);
+      alert("Failed to export PDF");
+    } finally {
+      setExportLoading(false);
+    }
+  };
 
   return (
     <div className="w-full min-h-screen relative bg-black overflow-hidden flex flex-col justify-start items-center p-6">
@@ -249,6 +248,17 @@ export default function Reports() {
           </div>
         </div>
 
+        {/* Export Button */}
+        <div className="mb-8 flex justify-end">
+          <button
+            onClick={handleExportPDF}
+            disabled={exportLoading || !statsData || !top10Vehicles.length || !top10Stations.length}
+            className="px-8 py-3 bg-red-600 hover:bg-red-700 disabled:bg-red-900 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition transform hover:scale-105 active:scale-95"
+          >
+            {exportLoading ? "Generating PDF..." : "Export PDF Report"}
+          </button>
+        </div>
+
         {/* Stats Cards */}
         {loading ? (
           <div className="text-center text-white/60 py-12 text-lg">Loading data...</div>
@@ -260,7 +270,7 @@ export default function Reports() {
                 Fastest Response Time
               </h3>
               <p className="text-3xl font-extrabold text-green-400">
-                {formatDuration(stats.minResponseTime)}
+                {stats.minResponseTime || "N/A"}
               </p>
             </div>
 
@@ -270,7 +280,7 @@ export default function Reports() {
                 Slowest Response Time
               </h3>
               <p className="text-3xl font-extrabold text-red-200">
-                {formatDuration(stats.maxResponseTime)}
+                {stats.maxResponseTime || "N/A"}
               </p>
             </div>
 
@@ -280,9 +290,7 @@ export default function Reports() {
                 Average Response Time
               </h3>
               <p className="text-3xl font-extrabold text-blue-400">
-                {formatDuration(
-                  stats.avgResponseTime ? Math.round(stats.avgResponseTime) : 0
-                )}
+                {stats.avgResponseTime || "N/A"}
               </p>
             </div>
           </div>
@@ -336,7 +344,7 @@ export default function Reports() {
                             {vehicle.driver_name || "Unassigned"}
                           </td>
                           <td className="py-3 px-2 text-blue-400 font-semibold">
-                            {formatDuration(vehicle.avgResponseTime)}
+                            {vehicle.avgResponseTime || "N/A"}
                           </td>
                         </tr>
                       ))}
@@ -396,7 +404,7 @@ export default function Reports() {
                             {station.longitude?.toFixed(4)}
                           </td>
                           <td className="py-3 px-2 text-blue-400 font-semibold">
-                            {formatDuration(station.avgResponseTime)}
+                            {station.avgResponseTime || "N/A"}
                           </td>
                         </tr>
                       ))}

@@ -16,5 +16,5 @@ public class StationAnalyticsResponseDTO {
     StationType stationType;
     Double longitude;
     Double latitude;
-    Double avgResponseTime;
+    String avgResponseTime;
 }

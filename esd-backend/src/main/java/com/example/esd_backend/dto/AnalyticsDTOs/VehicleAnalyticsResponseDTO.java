@@ -15,5 +15,5 @@ public class VehicleAnalyticsResponseDTO {
     Integer capacity;
     StationType type;
     String driver_name;
-    double avgResponseTime;
+    String avgResponseTime;
 }
