@@ -94,29 +94,28 @@ public class SolvedByMapper {
         return dtos;
     }
 
-    public String formatDuration(long milliseconds) {
-        if (milliseconds == 0) return "0s";
+    public String formatDuration(double seconds) {
+        if (seconds == 0) return "0s";
         
-        double seconds = milliseconds / 1000.0;
-        double minutes = seconds / 60.0;
-        double hours = minutes / 60.0;
-        double days = hours / 24.0;
+        double mins = seconds / 60.0;
+        double hrs = mins / 60.0;
+        double dys = hrs / 24.0;
         
-        if (days >= 1) {
-            long d = (long) days;
-            long h = (long) (hours % 24);
-            long m = (long) (minutes % 60);
+        if (dys >= 1) {
+            long d = (long) dys;
+            long h = (long) (hrs % 24);
+            long m = (long) (mins % 60);
             double s = seconds % 60;
             return String.format("%dd %dh %dm %.5fs", d, h, m, s);
         }
-        if (hours >= 1) {
-            long h = (long) hours;
-            long m = (long) (minutes % 60);
+        if (hrs >= 1) {
+            long h = (long) hrs;
+            long m = (long) (mins % 60);
             double s = seconds % 60;
             return String.format("%dh %dm %.5fs", h, m, s);
         }
-        if (minutes >= 1) {
-            long m = (long) minutes;
+        if (mins >= 1) {
+            long m = (long) mins;
             double s = seconds % 60;
             return String.format("%dm %.5fs", m, s);
         }
@@ -133,7 +132,7 @@ public class SolvedByMapper {
                 .stationType(StationType.valueOf((String) row[2]))
                 .longitude(((Number) row[3]).doubleValue())
                 .latitude(((Number) row[4]).doubleValue())
-                .avgResponseTime(formatDuration(((Number) row[5]).longValue()))
+                .avgResponseTime(formatDuration(((Number) row[5]).doubleValue()))
                 .build();
             
             dtos.add(dto);
@@ -151,7 +150,7 @@ public class SolvedByMapper {
                 .type(StationType.valueOf((String) row[1]))
                 .capacity(((Number) row[2]).intValue())
                 .driver_name((String) row[3])
-                .avgResponseTime(formatDuration(((Number) row[4]).longValue()))
+                .avgResponseTime(formatDuration(((Number) row[4]).doubleValue()))
                 .build();
             
             dtos.add(dto);
