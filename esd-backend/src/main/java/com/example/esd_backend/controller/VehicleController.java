@@ -24,19 +24,16 @@ public class VehicleController {
     }
 
     @PostMapping("/add")
-    @PreAuthorize("hasRole('DISPATCHER')")
     public ResponseEntity<Vehicle>  addVehicle(@RequestBody VehicleDto vehicleDto) {
         return ResponseEntity.ok(vehicleService.addVehicle(vehicleDto));
     }
 
     @GetMapping("/unassigned")
-    @PreAuthorize("hasRole('DISPATCHER')")
     public ResponseEntity<List<UnassignedVehicleDto>> getUnassignedVehicles() {
         return ResponseEntity.ok(vehicleService.getUnassignedVehicles());
     }
 
     @PostMapping("/assign")
-    @PreAuthorize("hasRole('DISPATCHER')")
     public ResponseEntity<VehicleAssignmentDto>  assignResponder (
             @RequestParam Long vehicleId,
             @RequestParam String name ){
@@ -44,19 +41,16 @@ public class VehicleController {
     }
 
     @GetMapping("/all")
-    @PreAuthorize("hasRole('DISPATCHER')")
     public ResponseEntity<List<VehicleListDto>>  getAllVehicles() {
         return ResponseEntity.ok(vehicleService.getAllVehicles()) ;
     }
 
     @GetMapping("/available")
-    @PreAuthorize("hasRole('DISPATCHER')")
     public ResponseEntity<List<VehicleListDto>> getAvailableVehicles() {
         return ResponseEntity.ok(vehicleService.getAvailableVehicles());
     }
 
     @DeleteMapping("/delete/{id}")
-    @PreAuthorize("hasRole('DISPATCHER')")
     public ResponseEntity<Void> deleteVehicle(@PathVariable Long id) {
         vehicleService.deleteVehicle(id);
         return ResponseEntity.noContent().build();

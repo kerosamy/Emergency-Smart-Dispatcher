@@ -57,12 +57,12 @@ public class IncidentService {
         incident.setCapacity(request.getCapacity() != null ? request.getCapacity() : 0);
 
         // Get current user from SecurityContext
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String currentUserEmail = auth.getName(); // typically username/email
-        User reporter = userRepository.findByEmail(currentUserEmail)
-                .orElseThrow(() -> new RuntimeException("Reporter not found"));
-
-        incident.setReporter(reporter);
+//        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+//        String currentUserEmail = auth.getName(); // typically username/email
+//        User reporter = userRepository.findByEmail(currentUserEmail)
+//                .orElseThrow(() -> new RuntimeException("Reporter not found"));
+//
+//        incident.setReporter(reporter);
 
         Incident savedIncident = incidentRepository.save(incident);
         autoAssign.handleNewIncident(savedIncident);

@@ -38,8 +38,8 @@ public class VehicleService {
                 .orElseThrow(() -> new RuntimeException("station does not exist"));
         Vehicle vehicle = VehicleMapper.toEntity(vehicleDto, station);
         vehicle.setStationType(station.getType());
-        if (vehicleDto.getResponderId() != null) {
-            User responder = userRepository.findById(vehicleDto.getResponderId())
+        if (vehicleDto.getResponderEmail() != null) {
+            User responder = userRepository.findByEmail(vehicleDto.getResponderEmail())
                     .orElseThrow(() -> new RuntimeException("Responder not found"));
             if (responder.getVehicle() != null) {
                 throw new RuntimeException("This responder is already assigned to a vehicle");
