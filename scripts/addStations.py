@@ -7,12 +7,16 @@ HEADERS = {
 }
 
 STATION_TYPES = ["FIRE", "MEDICAL", "POLICE"]
+minX = 22.0
+maxX = 31.7
+minY = 25.0
+maxY = 35.9
 
 for i in range(1, 101):
     station_data = {
         "name": f"Station-{i}",
-        "latitude": round(random.uniform(22.0, 31.7), 10),
-        "longitude": round(random.uniform(25.0, 35.9), 10),
+        "latitude": round(random.uniform(minX, maxX), 10),
+        "longitude": round(random.uniform(minY, maxY), 10),
         "type": random.choice(STATION_TYPES)
     }
 
