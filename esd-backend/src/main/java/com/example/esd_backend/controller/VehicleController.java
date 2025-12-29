@@ -20,9 +20,8 @@ public class VehicleController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<Void>  addVehicle(@RequestBody VehicleDto vehicleDto) {
-        vehicleService.addVehicle(vehicleDto);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<Vehicle>  addVehicle(@RequestBody VehicleDto vehicleDto) {
+        return ResponseEntity.ok(vehicleService.addVehicle(vehicleDto));
     }
 
     @GetMapping("/unassigned")
