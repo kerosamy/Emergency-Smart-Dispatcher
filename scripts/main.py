@@ -1,8 +1,8 @@
-from addResponders import *
-from addStations import *
-from addVehicles import *
-from addIncident import *
-from helper import *
+from helper.addResponders import *
+from helper.addStations import *
+from helper.addVehicles import *
+from helper.addIncident import *
+from helper.helper import *
 
 def main(n):
     print(f"=== Creating {n} users (responders) ===")
@@ -18,5 +18,5 @@ def main(n):
     report_incidents(n)
 
 if __name__ == "__main__":
-    n = 100  # Change this to any number of responders/stations/vehicles/incidents
+    n = 10  # Change this to any number of responders/stations/vehicles/incidents
     main(n)

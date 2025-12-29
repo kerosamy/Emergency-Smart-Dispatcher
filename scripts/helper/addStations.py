@@ -1,6 +1,6 @@
 import requests
 import random
-from helper import * 
+from helper.helper import * 
 
 def create_stations(n, minX, maxX, minY, maxY):
     URL = "http://localhost:8080/stations/add"  # change if needed

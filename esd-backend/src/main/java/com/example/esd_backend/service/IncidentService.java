@@ -24,14 +24,10 @@ import java.util.stream.Collectors;
 
 @Service
 public class IncidentService {
-    
-    private static final Logger logger = LoggerFactory.getLogger(IncidentService.class);
-    
+
     @Autowired
     private IncidentRepository incidentRepository;
-    
-    @Autowired
-    private UserRepository userRepository;
+
     
     @Autowired
     private AssignToRepository assignToRepository;
@@ -64,7 +60,6 @@ public class IncidentService {
 //                .orElseThrow(() -> new RuntimeException("Reporter not found"));
 //
 //        incident.setReporter(reporter);
-        System.out.println("ssss");
 
         Incident savedIncident = incidentRepository.save(incident);
         System.out.println("auto assign");

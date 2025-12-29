@@ -1,5 +1,5 @@
 import requests
-from helper import * 
+from helper.helper import * 
 
 def create_users(n):
     URL = "http://localhost:8080/users/add-user"

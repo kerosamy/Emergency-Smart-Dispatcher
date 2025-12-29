@@ -1,6 +1,6 @@
 import random
 import requests
-from helper import * 
+from helper.helper import * 
 
 API_URL = "http://localhost:8080/incidents"  # change if needed
 
