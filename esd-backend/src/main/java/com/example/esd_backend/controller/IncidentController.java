@@ -1,6 +1,8 @@
 package com.example.esd_backend.controller;
 
 import com.example.esd_backend.dto.incidentDTOs.*;
+import com.example.esd_backend.model.Incident;
+import com.example.esd_backend.model.enums.IncidentStatus;
 import com.example.esd_backend.service.IncidentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -134,4 +136,5 @@ public class IncidentController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
 }

@@ -2,8 +2,17 @@ import { useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { routes } from "./routes";
 import Layout from "./Components/Layout";
+import { wsService } from "./services/websocketService";
 
 function App() {
+    useEffect(() => {
+    
+    wsService.connect(
+      (status) => console.log("🟢 WS status:", status),
+    );
+    return () => {
+    };
+  }, []);
 
   return (
     <BrowserRouter>

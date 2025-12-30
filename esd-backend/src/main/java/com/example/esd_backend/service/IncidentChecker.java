@@ -13,10 +13,12 @@ import java.util.List;
 public class IncidentChecker {
     private final IncidentRepository incidentRepository;
     private final NotificationService notificationService;
+    private final AutoAssign autoAssign;
 
-    public IncidentChecker(IncidentRepository incidentRepository, NotificationService notificationService) {
+    public IncidentChecker(IncidentRepository incidentRepository, NotificationService notificationService, AutoAssign autoAssign) {
         this.incidentRepository = incidentRepository;
         this.notificationService = notificationService;
+        this.autoAssign = autoAssign;
     }
 
     @Scheduled(fixedRate = 10000)
@@ -26,6 +28,7 @@ public class IncidentChecker {
         System.out.println("running");
         for (Incident incident : unassigned) {
             notificationService.notifyTimeExceeded(incident);
+            autoAssign.handleNewIncident(incident);
         }
 
     }

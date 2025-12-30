@@ -59,7 +59,7 @@ public class VehicleController {
     }
 
     @PostMapping("/move")
-    public ResponseEntity<Void>moveVehicle (@RequestBody VehicleLocationDto dto){
+    public ResponseEntity<Void>moveVehicle (@RequestBody VehicleTypeDto dto){
         vehicleService.moveVehicle(dto);
         return ResponseEntity.ok().build();
     }

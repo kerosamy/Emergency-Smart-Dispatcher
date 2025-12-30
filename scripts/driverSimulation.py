@@ -89,6 +89,7 @@ class DriverSimulator:
 
         vehicle_id = assignment.get("vehicleId")
         Incident_id = assignment.get("incidentId")
+        vehicle_type = assignment.get("vehicleType")
 
         route = assignment.get("route", {})
         routes = route.get("routes", [])
@@ -102,7 +103,7 @@ class DriverSimulator:
         print(f" Route points: {len(coordinates)}")
         print(" Starting movement...\n")
 
-        await walk_route(vehicle_id, Incident_id, coordinates)
+        await walk_route(vehicle_id, Incident_id, coordinates,vehicle_type)
 
         print(" Vehicle reached destination")
 

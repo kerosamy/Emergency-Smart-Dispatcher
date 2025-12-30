@@ -14,14 +14,10 @@ async def call_patch(session, url, params=None):
     except Exception as e:
         print(f"❌ PATCH API error: {e}")
 
-
-async def walk_route(vehicle_id, incident_id, coordinates):
+async def walk_route(vehicle_id, incident_id, coordinates, vehicle_type, step=10):
     """
-    Simulate vehicle movement:
-    - Move to incident
-    - Call arrival API
-    - Wait 3s and call resolve API
-    - Reverse path and return to station
+    Move vehicle to incident, but skip intermediate points.
+    - step: send update every `step` points
     """
 
     move_url = "http://localhost:8080/vehicles/move"
@@ -31,10 +27,12 @@ async def walk_route(vehicle_id, incident_id, coordinates):
 
     async with aiohttp.ClientSession() as session:
 
-        # 🚗 Go to incident
+        # 🚗 Go to incident (jumping)
         print("➡️ Moving to incident...")
-        for idx, (lng, lat) in enumerate(coordinates):
-            payload = {"id": vehicle_id, "latitude": lat, "longitude": lng}
+        await asyncio.sleep(0.5)
+        for idx in range(0, len(coordinates), step):
+            lng, lat = coordinates[idx]
+            payload = {"id": vehicle_id, "latitude": lat, "longitude": lng, "type": vehicle_type}
             try:
                 async with session.post(move_url, json=payload) as resp:
                     if resp.status == 200:
@@ -44,6 +42,15 @@ async def walk_route(vehicle_id, incident_id, coordinates):
             except Exception as e:
                 print(f"❌ Move API error: {e}")
 
+        # Ensure last point is always sent
+        if coordinates[-1] != coordinates[idx]:
+            lng, lat = coordinates[-1]
+            payload = {"id": vehicle_id, "latitude": lat, "longitude": lng, "type": vehicle_type}
+            async with session.post(move_url, json=payload) as resp:
+                if resp.status == 200:
+                    print(f"🚗 Vehicle {vehicle_id} moved to final point")
+                else:
+                    print(f"❌ Move failed at final point: {resp.status}")
 
         # 🏁 Vehicle arrived at incident
         print(f"🏁 Vehicle {vehicle_id} arrived at incident {incident_id}")
@@ -57,9 +64,9 @@ async def walk_route(vehicle_id, incident_id, coordinates):
         await call_patch(session, resolve_url, {"vehicleId": vehicle_id})
 
         # 🔄 Reverse path to return
-        reversed_path = list(reversed(coordinates))
         print("⬅️ Returning to station...")
-        for idx, (lng, lat) in enumerate(reversed_path):
+        for idx in range(len(coordinates)-1, -1, -step):
+            lng, lat = coordinates[idx]
             payload = {"id": vehicle_id, "latitude": lat, "longitude": lng}
             try:
                 async with session.post(move_url, json=payload) as resp:
@@ -70,11 +77,16 @@ async def walk_route(vehicle_id, incident_id, coordinates):
             except Exception as e:
                 print(f"❌ Move API error: {e}")
 
-            await asyncio.sleep(0.0005)
-
-        print(f"🏁 Vehicle {vehicle_id} returned to station")
+        # Ensure first point is always sent
+        if coordinates[0] != coordinates[idx]:
+            lng, lat = coordinates[0]
+            payload = {"id": vehicle_id, "latitude": lat, "longitude": lng}
+            async with session.post(move_url, json=payload) as resp:
+                if resp.status == 200:
+                    print(f"🚗 Vehicle {vehicle_id} returned to station")
+                else:
+                    print(f"❌ Move failed at return start: {resp.status}")
 
         await asyncio.sleep(2)
         await call_patch(session, available_url)
         print(f"✅ Vehicle {vehicle_id} is now AVAILABLE")
-        

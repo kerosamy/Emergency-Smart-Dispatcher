@@ -4,6 +4,8 @@ import UserService from "./UserService";
 const API_URL = "http://localhost:8080/incidents";
 
 class IncidentService {
+
+  
   async getAllIncidents() {
     const token = UserService.getToken();
     const res = await axios.get(API_URL, {
@@ -87,6 +89,15 @@ class IncidentService {
     const token = UserService.getToken();
     const res = await axios.get(`${API_URL}/assignments/non-resolved`, {
       headers: { Authorization: `Bearer ${token}` },
+    });
+    return res.data;
+  }
+
+    async getIncidentsByStatus(status) {
+    const token = UserService.getToken();
+    const res = await axios.get(`${API_URL}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { status }, 
     });
     return res.data;
   }

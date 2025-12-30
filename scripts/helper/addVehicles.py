@@ -17,7 +17,7 @@ def create_vehicles(n, station_count):
         index = random.randint(1, station_count)
 
         vehicle_data = {
-            "capacity": random.randint(1, 10),
+            "capacity": random.randint(5, 10),
             "vehicleStatus": "AVAILABLE",
             "stationName": f"Station-{index}",
             "responderEmail": f"user{i}@example.com"

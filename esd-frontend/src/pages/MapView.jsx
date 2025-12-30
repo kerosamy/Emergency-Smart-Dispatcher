@@ -1,9 +1,8 @@
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useCallback, memo } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { wsService } from "../services/websocketService";
-import MarkerClusterGroup from "react-leaflet-cluster";
 
 import VehicleService from "../services/VehicleService";
 import StationService from "../services/StationService";
@@ -26,7 +25,7 @@ import incidentMedical from "../assets/incident-medical.png";
 import incidentCrime from "../assets/incident-crime.png";
 
 // ---------------------------------------------------
-// ICON CACHE (VERY IMPORTANT)
+// ICON CACHE (VERY IMPORTANT - OUTSIDE COMPONENT)
 // ---------------------------------------------------
 const iconCache = {};
 
@@ -41,24 +40,28 @@ const createIcon = (url) => {
   }
   return iconCache[url];
 };
-const createGlowingIcon = (url, glow = false) => {
-  return L.divIcon({
-    html: `<div style="
-      width: 25px;
-      height: 25px;
-      background-image: url(${url});
-      background-size: cover;
-      border-radius: 50%;
-      ${glow ? 'box-shadow: 0 0 15px 5px rgba(255,0,0,0.7);' : ''}
-      ">
-    </div>`,
-    className: "", // remove default Leaflet styles
-    iconSize: [25, 25],
-    iconAnchor: [12, 12],
-    popupAnchor: [0, -12],
-  });
-};
 
+const createGlowingIcon = (url, glow = false) => {
+  const cacheKey = `${url}-${glow}`;
+  if (!iconCache[cacheKey]) {
+    iconCache[cacheKey] = L.divIcon({
+      html: `<div style="
+        width: 25px;
+        height: 25px;
+        background-image: url(${url});
+        background-size: cover;
+        border-radius: 50%;
+        ${glow ? 'box-shadow: 0 0 15px 5px rgba(255,0,0,0.7);' : ''}
+        ">
+      </div>`,
+      className: "",
+      iconSize: [25, 25],
+      iconAnchor: [12, 12],
+      popupAnchor: [0, -12],
+    });
+  }
+  return iconCache[cacheKey];
+};
 
 const ICONS = {
   vehicles: {
@@ -82,10 +85,63 @@ const ICONS = {
 };
 
 const getIcon = (category, type) =>
-  createIcon(ICONS[category]?.[type] || ICONS[category].default);
+  createIcon(ICONS[category]?.[type?.toUpperCase()] || ICONS[category].default);
 
 // ---------------------------------------------------
-// COMPONENT
+// MEMOIZED MARKER COMPONENTS
+// ---------------------------------------------------
+const VehicleMarker = memo(({ vehicle }) => (
+  <Marker
+    position={[vehicle.lat, vehicle.lng]}
+    icon={getIcon("vehicles", vehicle.type)}
+  >
+    <Popup>{vehicle.name}</Popup>
+  </Marker>
+));
+VehicleMarker.displayName = "VehicleMarker";
+
+const StationMarker = memo(({ station }) => (
+  <Marker
+    position={[station.lat, station.lng]}
+    icon={getIcon("stations", station.type)}
+  >
+    <Popup>{station.name}</Popup>
+  </Marker>
+));
+StationMarker.displayName = "StationMarker";
+
+const IncidentMarker = memo(({ incident, isTimeExceeded }) => {
+  const icon = useMemo(
+    () =>
+      createGlowingIcon(
+        ICONS.incidents[incident.type] || ICONS.incidents.default,
+        isTimeExceeded
+      ),
+    [incident.type, isTimeExceeded]
+  );
+
+  return (
+    <Marker position={[incident.lat, incident.lng]} icon={icon}>
+      <Popup>
+        Incident #{incident.id} {isTimeExceeded && "(⏰ Time Exceeded)"}
+      </Popup>
+    </Marker>
+  );
+});
+IncidentMarker.displayName = "IncidentMarker";
+
+const RouteLayer = memo(({ assignment, stationMap, incidentMap }) => {
+  const st = stationMap[assignment.stationName];
+  const inc = incidentMap[assignment.incidentId];
+  
+  if (!st || !inc) return null;
+  
+  return <RoutingLayer start={st} end={inc} />;
+});
+RouteLayer.displayName = "RouteLayer";
+
+// ---------------------------------------------------
+// MAIN COMPONENT
 // ---------------------------------------------------
 export default function MapView() {
   const [vehicles, setVehicles] = useState([]);
@@ -94,8 +150,7 @@ export default function MapView() {
   const [assignments, setAssignments] = useState([]);
   const [showRoutes, setShowRoutes] = useState(true);
   const [timeExceededIncidents, setTimeExceededIncidents] = useState(new Set());
-
-  const wsConnected = useRef(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // ---------------------------------------------------
   // INITIAL LOAD (ONCE)
@@ -103,6 +158,7 @@ export default function MapView() {
   useEffect(() => {
     const load = async () => {
       try {
+        setIsLoading(true);
         const [veh, sta, inc, ass] = await Promise.all([
           VehicleService.getAllVehicles(),
           StationService.getAllStations(),
@@ -152,6 +208,8 @@ export default function MapView() {
         setAssignments(ass);
       } catch (e) {
         console.error("Map load error", e);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -159,149 +217,153 @@ export default function MapView() {
   }, []);
 
   // ---------------------------------------------------
-  // WEBSOCKET (ONE CONNECTION ONLY)
+  // WEBSOCKET SUBSCRIPTIONS (MEMOIZED CALLBACKS)
   // ---------------------------------------------------
-  useEffect(() => {
-    if (wsConnected.current) return;
-    wsConnected.current = true;
+  const handleVehicleUpdate = useCallback((u) => {
+    if (u.type === "VEHICLE_REMOVED") {
+      setVehicles(prev => prev.filter(v => v.id !== u.vehicleId));
+      return;
+    }
 
-    wsService.connect(
-      (status) => {
-        console.log("🟢 WS status:", status);
+    if (!u.id) {
+      console.warn("Ignoring vehicle update with no id", u);
+      return;
+    }
 
-        if (status !== "connected") return;
+    setVehicles(prev => {
+      const index = prev.findIndex(v => v.id === u.id);
 
-        wsService.subscribe("/topic/vehicles", (u) => {
-          setVehicles((prev) => {
-            if (u.type === "VEHICLE_REMOVED") {
-              console.log("🚗 Vehicle removed:", u.vehicleId);
-              return prev.filter((v) => v.id !== u.vehicleId);
-            }
-          
-            const index = prev.findIndex((v) => v.id === u.id);
+      if (index !== -1) {
+        const updated = [...prev];
+        updated[index] = {
+          ...updated[index],
+          lat: u.latitude,
+          lng: u.longitude,
+          status: u.status ?? updated[index].status,
+        };
+        return updated;
+      }
+        const vehicleName = u.vehicleType || `Vehicle ${u.id}`;
+        if (!u.vehicleType) {
+             console.log(`Fallback name used for vehicle ${u.id}: ${vehicleName}`);
+        }
 
-            // 🔹 UPDATE
-            if (index !== -1) {
-              const updated = [...prev];
-              updated[index] = {
-                ...updated[index],
-                lat: u.latitude,
-                lng: u.longitude,
-                status: u.status ?? updated[index].status,
-              };
-              return updated;
-            }
-
-            return [
-              ...prev,
-              {
-                id: u.id,
-                name: u.vehicleType || `Vehicle ${u.id}`,
-                type: u.vehicleType,
-                status: u.status,
-                responder: u.responder,
-                lat: u.latitude,
-                lng: u.longitude,
-              },
-            ];
-          });
-        });
-
-        // 🔹 Stations
-        wsService.subscribe("/topic/stations", (e) => {
-          if (e.type !== "STATION_ADDED") return;
-
-          setStations((prev) =>
-            prev.some((s) => s.id === e.stationId)
-              ? prev
-              : [
-                  ...prev,
-                  {
-                    id: e.stationId,
-                    name: e.name,
-                    type: e.stationType,
-                    lat: e.latitude,
-                    lng: e.longitude,
-                  },
-                ]
-          );
-        });
-
-        // 🔹 Assignments
-        wsService.subscribe("/topic/assignments", (event) => {
-          console.log("📡 Assignment WS event:", event);
-
-          switch (event.type) {
-            case "ASSIGNED":
-              setAssignments((prev) => {
-                const exists = prev.some(
-                  (a) =>
-                    a.incidentId === event.incidentId &&
-                    a.vehicleId === event.vehicleId
-                );
-
-                if (exists) return prev;
-
-                return [
-                  ...prev,
-                  {
-                    incidentId: event.incidentId,
-                    vehicleId: event.vehicleId,
-                    stationName: event.stationName,
-                  },
-                ];
-              });
-              break;
-
-            case "UNASSIGNED":
-              setAssignments((prev) =>
-                prev.filter(
-                  (a) =>
-                    !(
-                      a.incidentId === event.incidentId &&
-                      a.vehicleId === event.vehicleId
-                    )
-                )
-              );
-              break;
-
-            default:
-              console.warn("Unknown assignment event:", event);
-          }
-        });
-
-        // 🔹 Incidents
-        wsService.subscribe("/topic/incidents", (e) => {
-          if (e.type === "REPORTED") {
-            setIncidents((prev) => [
-              ...prev,
-              {
-                id: e.incidentId,
-                type: e.incidentType,
-                severity: e.severity,
-                status: e.status,
-                lat: e.latitude,
-                lng: e.longitude,
-              },
-            ]);
-          } else if (e.type === "DELETED") {
-            setIncidents((prev) => prev.filter((i) => i.id !== e.incidentId));
-          }else if (e.type === "TIME") {
-            setTimeExceededIncidents((prev) => new Set(prev).add(e.incidentId));
-          }
-        });
-      },
-      (msg) => console.log("📩 WS message:", msg)
-    );
-
-    return () => {
-      wsService.disconnect();
-      wsConnected.current = false;
-    };
+      return [
+        ...prev,
+        {
+          id: u.id,
+          name: u.vehicleType || `Vehicle ${u.id}`,
+          type: u.vehicleType,
+          status: u.status,
+          responder: u.responder,
+          lat: u.latitude,
+          lng: u.longitude,
+        },
+      ];
+    });
   }, []);
 
+  const handleStationUpdate = useCallback((e) => {
+    if (e.type !== "STATION_ADDED") return;
+
+    setStations((prev) =>
+      prev.some((s) => s.id === e.stationId)
+        ? prev
+        : [
+            ...prev,
+            {
+              id: e.stationId,
+              name: e.name,
+              type: e.stationType,
+              lat: e.latitude,
+              lng: e.longitude,
+            },
+          ]
+    );
+  }, []);
+
+  const handleAssignmentUpdate = useCallback((event) => {
+    console.log("📡 Assignment WS event:", event);
+
+    switch (event.type) {
+      case "ASSIGNED":
+        setAssignments((prev) => {
+          const exists = prev.some(
+            (a) =>
+              a.incidentId === event.incidentId &&
+              a.vehicleId === event.vehicleId
+          );
+
+          if (exists) return prev;
+
+          return [
+            ...prev,
+            {
+              incidentId: event.incidentId,
+              vehicleId: event.vehicleId,
+              stationName: event.stationName,
+            },
+          ];
+        });
+        break;
+
+      case "UNASSIGNED":
+        setAssignments((prev) =>
+          prev.filter(
+            (a) =>
+              !(
+                a.incidentId === event.incidentId &&
+                a.vehicleId === event.vehicleId
+              )
+          )
+        );
+        break;
+
+      default:
+        console.warn("Unknown assignment event:", event);
+    }
+  }, []);
+
+  const handleIncidentUpdate = useCallback((e) => {
+    if (e.type === "REPORTED") {
+      setIncidents((prev) => [
+        ...prev,
+        {
+          id: e.incidentId,
+          type: e.incidentType,
+          severity: e.severity,
+          status: e.status,
+          lat: e.latitude,
+          lng: e.longitude,
+        },
+      ]);
+    } else if (e.type === "DELETED") {
+      setIncidents((prev) => prev.filter((i) => i.id !== e.incidentId));
+      setAssignments((prev) => prev.filter((a) => a.incidentId !== e.incidentId));
+    } else if (e.type === "TIME") {
+      setTimeExceededIncidents((prev) => new Set(prev).add(e.incidentId));
+    }
+  }, []);
+
+  useEffect(() => {
+    console.log("📡 Setting up WebSocket subscriptions...");
+
+    const unsubVehicles = wsService.subscribe("/topic/vehicles", handleVehicleUpdate);
+    const unsubStations = wsService.subscribe("/topic/stations", handleStationUpdate);
+    const unsubAssignments = wsService.subscribe("/topic/assignments", handleAssignmentUpdate);
+    const unsubIncidents = wsService.subscribe("/topic/incidents", handleIncidentUpdate);
+
+    return () => {
+      console.log("🔕 Cleaning up WebSocket subscriptions...");
+      unsubVehicles && unsubVehicles();
+      unsubStations && unsubStations();
+      unsubAssignments && unsubAssignments();
+      unsubIncidents && unsubIncidents();
+    };
+  }, [handleVehicleUpdate, handleStationUpdate, handleAssignmentUpdate, handleIncidentUpdate]);
+
   // ---------------------------------------------------
-  // FAST LOOKUPS (NO FIND INSIDE RENDER)
+  // MEMOIZED MAPS
   // ---------------------------------------------------
   const stationMap = useMemo(
     () => Object.fromEntries(stations.map((s) => [s.name, s])),
@@ -314,13 +376,28 @@ export default function MapView() {
   );
 
   // ---------------------------------------------------
+  // MEMOIZED TOGGLE HANDLER
+  // ---------------------------------------------------
+  const toggleRoutes = useCallback(() => {
+    setShowRoutes(prev => !prev);
+  }, []);
+
+  // ---------------------------------------------------
   // RENDER
   // ---------------------------------------------------
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen w-full bg-gray-900">
+        <div className="text-white text-xl">Loading map...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative h-screen w-full">
       {/* Toggle Button */}
       <button
-        onClick={() => setShowRoutes(!showRoutes)}
+        onClick={toggleRoutes}
         className={`absolute top-4 right-4 z-[1000] px-4 py-2 rounded-lg shadow-lg font-semibold transition-all duration-200 ${
           showRoutes
             ? "bg-red-600 hover:bg-red-700 text-white"
@@ -336,54 +413,41 @@ export default function MapView() {
         className="h-full w-full"
         preferCanvas
       >
-        <TileLayer url="https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png" />
+        <TileLayer 
+          url="https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
+          updateWhenIdle={true}
+          updateWhenZooming={false}
+        />
 
+        {/* Vehicles */}
         {vehicles.map((v) => (
-          <Marker
-            key={`veh-${v.id}`}
-            position={[v.lat, v.lng]}
-            icon={getIcon("vehicles", v.type)}
-          >
-            <Popup>{v.name}</Popup>
-          </Marker>
+          <VehicleMarker key={`veh-${v.id}`} vehicle={v} />
         ))}
 
+        {/* Stations */}
         {stations.map((s) => (
-          <Marker
-            key={`sta-${s.id}`}
-            position={[s.lat, s.lng]}
-            icon={getIcon("stations", s.type)}
-          >
-            <Popup>{s.name}</Popup>
-          </Marker>
+          <StationMarker key={`sta-${s.id}`} station={s} />
         ))}
 
-      {incidents.map((i) => {
-        const isTimeExceeded = timeExceededIncidents.has(i.id);
-        const icon = createGlowingIcon(
-          ICONS.incidents[i.type] || ICONS.incidents.default,
-          isTimeExceeded
-        );
+        {/* Incidents */}
+        {incidents.map((i) => (
+          <IncidentMarker
+            key={`inc-${i.id}`}
+            incident={i}
+            isTimeExceeded={timeExceededIncidents.has(i.id)}
+          />
+        ))}
 
-        return (
-          <Marker key={`inc-${i.id}`} position={[i.lat, i.lng]} icon={icon}>
-            <Popup>
-              Incident #{i.id} {isTimeExceeded && "(⏰ Time Exceeded)"}
-            </Popup>
-          </Marker>
-        );
-      })}
-
-
-        {/* Conditionally render routing paths */}
+        {/* Routes */}
         {showRoutes &&
-          assignments.map((a, idx) => {
-            const st = stationMap[a.stationName];
-            const inc = incidentMap[a.incidentId];
-            if (!st || !inc) return null;
-
-            return <RoutingLayer key={`r-${idx}`} start={st} end={inc} />;
-          })}
+          assignments.map((a, idx) => (
+            <RouteLayer
+              key={`r-${a.incidentId}-${a.vehicleId}`}
+              assignment={a}
+              stationMap={stationMap}
+              incidentMap={incidentMap}
+            />
+          ))}
       </MapContainer>
     </div>
   );

@@ -31,21 +31,18 @@ public class AutoAssign {
     private final AssignToRepository assignToRepository;
     private final SolvedByRepository solvedByRepository;
     private final NotificationService notificationService;
-    private final RoutingService routingService;
 
     public AutoAssign(VehicleRepository vehicleRepository,
                       IncidentRepository incidentRepository,
                       AssignToRepository assignToRepository,
                       SolvedByRepository solvedByRepository,
-                      NotificationService notificationService,
-                      RoutingService routingService
+                      NotificationService notificationService
     ) {
         this.vehicleRepository = vehicleRepository;
         this.incidentRepository = incidentRepository;
         this.assignToRepository = assignToRepository;
         this.solvedByRepository = solvedByRepository;
         this.notificationService = notificationService;
-        this.routingService = routingService;
     }
 
     @Transactional
@@ -60,7 +57,6 @@ public class AutoAssign {
                         incident.getLongitude()
                         )))
                 .toList();
-        System.out.println( "size = " +availableVehicles.size());
         if (!availableVehicles.isEmpty()) {
             dispatchVehiclesForIncident (incident, availableVehicles);
         }
@@ -122,12 +118,11 @@ public class AutoAssign {
 
         int currentTotal = getAssignedCapacity(incidentId);
         int required = incident.getCapacity() != null ? incident.getCapacity() : 0;
-        System.out.println("finsh");
 
 
         // Create a payload for the driver
-       notificationService.notifyDriver(incident,vehicle);
        notificationService.notifyMovingVehicle(vehicle);
+       notificationService.notifyDriver(incident,vehicle);
        notificationService.notifyAssignmentCreated(incident,vehicle);
 
 

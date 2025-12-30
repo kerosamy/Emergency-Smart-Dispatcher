@@ -119,8 +119,9 @@ public class VehicleService {
         return redisService.getAllVehicles();
     }
 
-    public void moveVehicle (VehicleLocationDto dto){
-        redisService.save(dto);
+    public void moveVehicle (VehicleTypeDto dto){
+        VehicleLocationDto newDto = new VehicleLocationDto(dto.getId(),dto.getLatitude(),dto.getLongitude());
+        redisService.save(newDto);
         notificationService.notifyMovingVehicle(dto);
     }
 

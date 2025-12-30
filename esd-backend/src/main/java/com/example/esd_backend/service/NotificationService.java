@@ -1,6 +1,7 @@
 package com.example.esd_backend.service;
 
 import com.example.esd_backend.dto.VehicleLocationDto;
+import com.example.esd_backend.dto.VehicleTypeDto;
 import com.example.esd_backend.model.Incident;
 import com.example.esd_backend.model.Station;
 import com.example.esd_backend.model.Vehicle;
@@ -25,6 +26,7 @@ public class NotificationService {
        Map<String, Object> payload = new HashMap<>();
        payload.put("incidentId", incident.getId());
        payload.put("vehicleId", vehicle.getId());
+       payload.put("vehicleType",vehicle.getStationType());
        payload.put("route",routingService.route(vehicle.getStation().getLatitude(),vehicle.getStation().getLongitude(),incident.getLatitude(),incident.getLongitude()));
 
        messagingTemplate.convertAndSendToUser(
@@ -77,16 +79,19 @@ public class NotificationService {
         messagingTemplate.convertAndSend("/topic/assignments", payload);
     }
 
-    public void notifyMovingVehicle(VehicleLocationDto vehicle) {
+    public void notifyMovingVehicle(VehicleTypeDto vehicle) {
+
         Map<String, Object> payload = new HashMap<>();
         payload.put("id", vehicle.getId());
         payload.put("latitude", vehicle.getLatitude());
         payload.put("longitude", vehicle.getLongitude());
+        payload.put("vehicleType", vehicle.getType());
 
         messagingTemplate.convertAndSend("/topic/vehicles", payload);
     }
 
     public void notifyMovingVehicle(Vehicle vehicle) {
+
         Map<String, Object> payload = new HashMap<>();
         payload.put("id", vehicle.getId());
         payload.put("vehicleType",vehicle.getStationType());

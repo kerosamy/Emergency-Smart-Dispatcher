@@ -45,8 +45,10 @@ public interface IncidentRepository extends JpaRepository<Incident, Long> {
     @Transactional
 
     List<Incident> findByStatus(IncidentStatus reported);
-    @Query(value = "DELETE FROM incident WHERE id = :id", 
-       nativeQuery = true)
+    
+
+    @Query(value = "DELETE FROM incident WHERE id = :id",
+            nativeQuery = true)
     void deleteById(Long id);
 
     @Query(value = "SELECT * FROM incident WHERE status <> 'RESOLVED'", nativeQuery = true)
