@@ -39,7 +39,7 @@ During This milestone, the current changes was added to the the Emergency Dispat
     - Allowed all origins (*) for development flexibility
 
 
-### 5. **Automatic Vehicle Assignment**
+### 4. **Automatic Vehicle Assignment**
 - **Smart Assignment Logic**
   - Implemented auto-assignment system for vehicles to incidents
   - Added race condition handling with locks
@@ -49,7 +49,7 @@ During This milestone, the current changes was added to the the Emergency Dispat
     - ```handleNewVehicle()``` - Triggered & send notification when a vehicle becomes available.
     - ```assignVehicleToIncident()``` Performs the actual assignment when the lock is available.
 
-### 9. **Routing & Map Integration**
+### 5. **Routing & Map Integration**
 - **Route Planning**
   - Added connection between route display and API endpoints
   - Integrated map-based route visualization
