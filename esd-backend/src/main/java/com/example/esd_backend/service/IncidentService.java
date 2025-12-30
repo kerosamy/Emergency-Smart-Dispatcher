@@ -42,9 +42,9 @@ public class IncidentService {
     @Autowired
     private SolvedByRepository solvedByRepository;
 
+    @Autowired
+    private AutoAssign autoAssign;
 
-    
-    
     @Transactional
     public void reportIncident(IncidentRequestDto request) {
         Incident incident = new Incident();
@@ -63,11 +63,11 @@ public class IncidentService {
                 .orElseThrow(() -> new RuntimeException("Reporter not found"));
 
         incident.setReporter(reporter);
-        
-        incidentRepository.insertIncident(incident);        
-}
-    
-    
+
+        Incident savedIncident = incidentRepository.save(incident);
+        autoAssign.handleNewIncident(savedIncident);
+    }
+
     public IncidentResponseDto getIncidentById(Long incidentId) {
         Incident incident = incidentRepository.SearchId(incidentId);
         
@@ -98,6 +98,7 @@ public class IncidentService {
             })
             .collect(Collectors.toList());
     }
+
     public List<IncidentResponseDto> getReportedIncidents(){
         List<Incident> incidents = incidentRepository.findByStatus(IncidentStatus.REPORTED);
         return incidents.stream()
@@ -131,35 +132,6 @@ public class IncidentService {
         incidentRepository.save(incident);
     }
 
-
-    @Transactional
-    public void assignVehicleToIncident(Long incidentId, Long vehicleId) {
-            Incident incident = incidentRepository.SearchId(incidentId);
-            
-            Vehicle vehicle = vehicleRepository.findById(vehicleId).get();
-            
-            if (vehicle.getVehicleStatus() != VehicleStatus.AVAILABLE) {
-                logger.warn("Vehicle {} is not available. Status: {}", vehicle.getId(), vehicle.getVehicleStatus());
-            }
-            
-            AssignTo assignTo = new AssignTo();
-            assignTo.setIncident(incident);
-            assignTo.setVehicle(vehicle);
-            assignTo.setAssignTime(LocalDateTime.now());
-            assignToRepository.save(assignTo);
-            
-            if (vehicle.getDriver() != null) {
-                SolvedBy solvedBy = new SolvedBy();
-                solvedBy.setIncident(incident);
-                solvedBy.setVehicle(vehicle);
-                solvedByRepository.save(solvedBy);
-            }
-            
-            incident.setStatus(IncidentStatus.DISPATCHED);
-            incidentRepository.save(incident);
-    }
-    
-    
     @Transactional
     public void confirmArrival(Long incidentId , Long vehicleId) {
         Incident incident = incidentRepository.findById(incidentId).get();

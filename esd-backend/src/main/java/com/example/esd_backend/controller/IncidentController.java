@@ -66,18 +66,18 @@ public class IncidentController {
         }
     }
     
-    @PostMapping("/{incidentId}/assign/{vehicleId}")
-    @PreAuthorize("hasRole('DISPATCHER')")
-    public ResponseEntity<Void> assignVehicleToIncident(
-        @PathVariable Long incidentId,
-        @PathVariable Long vehicleId) {
-        try{
-            incidentService.assignVehicleToIncident(incidentId, vehicleId);
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
-    }
+//    @PostMapping("/{incidentId}/assign/{vehicleId}")
+//    @PreAuthorize("hasRole('DISPATCHER')")
+//    public ResponseEntity<Void> assignVehicleToIncident(
+//        @PathVariable Long incidentId,
+//        @PathVariable Long vehicleId) {
+//        try{
+//            incidentService.assignVehicleToIncident(incidentId, vehicleId);
+//            return ResponseEntity.ok().build();
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+//        }
+//    }
 
     @PatchMapping("/{id}/arrival")
     @PreAuthorize("hasAnyRole('DISPATCHER', 'RESPONDER')")
