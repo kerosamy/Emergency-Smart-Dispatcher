@@ -25,25 +25,29 @@ import java.util.stream.Collectors;
 @Service
 public class IncidentService {
 
-    @Autowired
-    private IncidentRepository incidentRepository;
+    private final IncidentRepository incidentRepository;
+    private final AssignToRepository assignToRepository;
+    private final VehicleRepository vehicleRepository;
+    private final SolvedByRepository solvedByRepository;
+    private final AutoAssign autoAssign;
+    private final NotificationService notificationService;
 
-    
-    @Autowired
-    private AssignToRepository assignToRepository;
-
-    @Autowired
-    private VehicleRepository vehicleRepository;
-    
-    @Autowired
-    private SolvedByRepository solvedByRepository;
-
-    @Autowired
-    private AutoAssign autoAssign;
+    public IncidentService(IncidentRepository incidentRepository,
+                           AssignToRepository assignToRepository,
+                           VehicleRepository vehicleRepository,
+                           SolvedByRepository solvedByRepository,
+                           AutoAssign autoAssign,
+                           NotificationService notificationService) {
+        this.incidentRepository = incidentRepository;
+        this.assignToRepository = assignToRepository;
+        this.vehicleRepository = vehicleRepository;
+        this.solvedByRepository = solvedByRepository;
+        this.autoAssign = autoAssign;
+        this.notificationService = notificationService;
+    }
 
     @Transactional
     public void reportIncident(IncidentRequestDto request) {
-        System.out.println("DDDDD");
         Incident incident = new Incident();
         incident.setType(IncidentType.valueOf(request.getType()));
         incident.setLatitude(request.getLatitude());
@@ -65,6 +69,7 @@ public class IncidentService {
         System.out.println("auto assign");
         autoAssign.handleNewIncident(savedIncident);
         System.out.println("vehicle assign");
+        notificationService.notifyIncidentCreated(savedIncident);
     }
 
     public IncidentResponseDto getIncidentById(Long incidentId) {
@@ -83,23 +88,15 @@ public class IncidentService {
     
     public List<IncidentResponseDto> getAllIncidents() {
         List<Incident> incidents = incidentRepository.findAllByOrderByReportTimeDesc();
-        return incidents.stream()
-            .map(i -> {
-                IncidentResponseDto dto = convertToResponseDto(i);
-                dto.setReporterName(i.getReporter() != null ? i.getReporter().getName() : null);
-                try{
-                Long count = incidentRepository.countAssignedVehiclesByIncidentId(i.getId());
-                dto.setAssignedVehicleCount(count != null ? count.intValue() : 0);
-                } catch (Exception e){
-                    dto.setAssignedVehicleCount(0);
-                }
-                return dto;
-            })
-            .collect(Collectors.toList());
+        return getIncidentResponseDtos(incidents);
     }
 
-    public List<IncidentResponseDto> getReportedIncidents(){
-        List<Incident> incidents = incidentRepository.findByStatus(IncidentStatus.REPORTED);
+    public List<IncidentResponseDto> getAllINonSolvedIncidents() {
+        List<Incident> incidents = incidentRepository.findAllNonResolvedNative();
+        return getIncidentResponseDtos(incidents);
+    }
+
+    private List<IncidentResponseDto> getIncidentResponseDtos(List<Incident> incidents) {
         return incidents.stream()
                 .map(i -> {
                     IncidentResponseDto dto = convertToResponseDto(i);
@@ -113,6 +110,11 @@ public class IncidentService {
                     return dto;
                 })
                 .collect(Collectors.toList());
+    }
+
+    public List<IncidentResponseDto> getReportedIncidents(){
+        List<Incident> incidents = incidentRepository.findByStatus(IncidentStatus.REPORTED);
+        return getIncidentResponseDtos(incidents);
     }
 
     @Transactional
@@ -144,24 +146,103 @@ public class IncidentService {
         solvedByRepository.UpdateArrivalTime(solvedBy);
         
     }
-    
+
     @Transactional
-    public void resolveIncident(Long incidentId , Long VehicleId) {
-        Incident incident = incidentRepository.findById(incidentId).get();
+    public void resolveIncident(Long incidentId, Long vehicleId) {
 
-        Vehicle vehicle = vehicleRepository.SearchId(VehicleId);
+        System.out.println("🟡 resolveIncident START");
+        System.out.println("➡ incidentId = " + incidentId + ", vehicleId = " + vehicleId);
 
-        SolvedBy solvedBy = solvedByRepository.findByIncidentAndVehicle(incident, vehicle)
-                .orElseThrow(() -> new RuntimeException("Vehicle not assigned to this incident"));
-        
-        solvedBy.setSolutionTime(LocalDateTime.now());
-        solvedByRepository.save(solvedBy);
-        
-        incident.setStatus(IncidentStatus.RESOLVED);
-        incidentRepository.save(incident);
+        // ------------------------------------------------
+        // 1️⃣ Load & LOCK incident (prevents race condition)
+        // ------------------------------------------------
+        Incident incident = incidentRepository.findByIdForUpdate(incidentId);
+
+        System.out.println("✅ Incident locked | id=" + incident.getId()
+                + " | status=" + incident.getStatus()
+                + " | capacity=" + incident.getCapacity());
+
+        // Guard: already resolved
+        if (incident.getStatus() == IncidentStatus.RESOLVED) {
+            System.out.println("⚠ Incident already RESOLVED → skipping");
+            return;
+        }
+
+        // ------------------------------------------------
+        // 2️⃣ Load vehicle
+        // ------------------------------------------------
+        Vehicle vehicle = vehicleRepository.SearchId(vehicleId);
+        if (vehicle == null) {
+            System.out.println("❌ Vehicle NOT FOUND");
+            throw new RuntimeException("Vehicle not found");
+        }
+
+        System.out.println("✅ Vehicle found | id=" + vehicle.getId()
+                + " | capacity=" + vehicle.getCapacity());
+
+        // ------------------------------------------------
+        // 3️⃣ Load assignment
+        // ------------------------------------------------
+        SolvedBy solvedBy = solvedByRepository
+                .findByIncidentAndVehicle(incident, vehicle)
+                .orElseThrow(() -> {
+                    System.out.println("❌ Vehicle NOT assigned to this incident");
+                    return new RuntimeException("Vehicle not assigned to this incident");
+                });
+
+        // ------------------------------------------------
+        // 4️⃣ Mark vehicle as solved (idempotent)
+        // ------------------------------------------------
+        if (solvedBy.getSolutionTime() == null) {
+            solvedBy.setSolutionTime(LocalDateTime.now());
+            solvedByRepository.save(solvedBy);
+            System.out.println("🟢 Solution time set for vehicle " + vehicleId);
+        } else {
+            System.out.println("⚠ Vehicle already marked as solved");
+        }
+
+        // ------------------------------------------------
+        // 5️⃣ Calculate solved capacity
+        // ------------------------------------------------
+        int solvedCapacity = solvedByRepository.findAllByIncident(incident)
+                .stream()
+                .filter(s -> s.getSolutionTime() != null)
+                .peek(s -> System.out.println(
+                        "🔍 Vehicle " + s.getVehicle().getId()
+                                + " | capacity=" + s.getVehicle().getCapacity()
+                ))
+                .mapToInt(s -> s.getVehicle().getCapacity())
+                .sum();
+
+        System.out.println("📊 Solved capacity = " + solvedCapacity
+                + " / Required = " + incident.getCapacity());
+
+        // ------------------------------------------------
+        // 6️⃣ Resolve incident if capacity satisfied
+        // ------------------------------------------------
+        if (solvedCapacity >= incident.getCapacity()) {
+            System.out.println("🎉 Capacity satisfied → RESOLVING incident");
+
+            incident.setStatus(IncidentStatus.RESOLVED);
+            incidentRepository.save(incident);
+
+            notificationService.notifyIncidentDeleted(incidentId);
+            System.out.println("📡 Incident delete notification sent");
+        } else {
+            System.out.println("⏳ Incident still needs capacity");
+        }
+
+        // ------------------------------------------------
+        // 7️⃣ Notify assignment removal (always)
+        // ------------------------------------------------
+        notificationService.notifyAssignmentDeleted(incidentId, vehicleId);
+        System.out.println("📡 Assignment delete notification sent");
+
+        System.out.println("🟢 resolveIncident END");
     }
-    
-    
+
+
+
     @Transactional
     public void deleteIncident(Long incidentId) {
             incidentRepository.deleteById(incidentId);
@@ -170,6 +251,11 @@ public class IncidentService {
     @Transactional
     public List<AssignmentResponseDTO> getAllAssignments() {
         return assignToRepository.findAllAssignments();
+    }
+
+    @Transactional
+    public List<AssignmentResponseDTO> getAllNonResolvedAssignments() {
+        return assignToRepository.findAllNonResolvedAssignmentsWithStation();
     }
 
     private IncidentResponseDto convertToResponseDto(Incident incident) {

@@ -44,6 +44,12 @@ public class IncidentController {
         return ResponseEntity.ok(incidents);
     }
 
+    @GetMapping("/non-solved")
+    public ResponseEntity<List<IncidentResponseDto>> getAllNonSolvedIncidents() {
+        List<IncidentResponseDto> incidents = incidentService.getAllINonSolvedIncidents();
+        return ResponseEntity.ok(incidents);
+    }
+
     @GetMapping("/reported")
     public ResponseEntity<List<IncidentResponseDto>> getReportedIncidents() {
         List<IncidentResponseDto> incidents = incidentService.getReportedIncidents();
@@ -116,6 +122,16 @@ public class IncidentController {
             return ResponseEntity.noContent().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    @GetMapping("/assignments/non-resolved")
+    public ResponseEntity<List<AssignmentResponseDTO>> getAllNonResolvedAssignments() {
+        try {
+            List<AssignmentResponseDTO> assignments = incidentService.getAllNonResolvedAssignments();
+            return ResponseEntity.ok(assignments);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }

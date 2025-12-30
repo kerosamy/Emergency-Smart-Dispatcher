@@ -1,16 +1,17 @@
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
+import { wsService } from "../services/websocketService";
+import MarkerClusterGroup from "react-leaflet-cluster";
 
 import VehicleService from "../services/VehicleService";
 import StationService from "../services/StationService";
 import IncidentService from "../services/IncidentService";
-import RoutingLayer from "../Components/RoutingLayer.jsx";
+import RoutingLayer from "../Components/RoutingLayer";
 
 // ---------------------------------------------------
-// ICON IMPORTS
+// ICONS
 // ---------------------------------------------------
 import policeCar from "../assets/police-car.png";
 import fireTruck from "../assets/fire-truck.png";
@@ -25,228 +26,365 @@ import incidentMedical from "../assets/incident-medical.png";
 import incidentCrime from "../assets/incident-crime.png";
 
 // ---------------------------------------------------
-// ICON PICKING LOGIC
+// ICON CACHE (VERY IMPORTANT)
 // ---------------------------------------------------
-const createLocalIcon = (url) =>
-  L.icon({
-    iconUrl: url,
-    iconSize: [25, 25],
-    iconAnchor: [17, 17],
-    popupAnchor: [0, -15],
-  });
+const iconCache = {};
 
-const ASSET_PATHS = {
+const createIcon = (url) => {
+  if (!iconCache[url]) {
+    iconCache[url] = L.icon({
+      iconUrl: url,
+      iconSize: [25, 25],
+      iconAnchor: [17, 17],
+      popupAnchor: [0, -15],
+    });
+  }
+  return iconCache[url];
+};
+const createGlowingIcon = (url, glow = false) => {
+  return L.divIcon({
+    html: `<div style="
+      width: 25px;
+      height: 25px;
+      background-image: url(${url});
+      background-size: cover;
+      border-radius: 50%;
+      ${glow ? 'box-shadow: 0 0 15px 5px rgba(255,0,0,0.7);' : ''}
+      ">
+    </div>`,
+    className: "", // remove default Leaflet styles
+    iconSize: [25, 25],
+    iconAnchor: [12, 12],
+    popupAnchor: [0, -12],
+  });
+};
+
+
+const ICONS = {
   vehicles: {
-    "Police": policeCar,
-    "Fire": fireTruck,
-    "Ambulance": ambulance,
-    "default": policeCar
+    POLICE: policeCar,
+    FIRE: fireTruck,
+    MEDICAL: ambulance,
+    default: policeCar,
   },
   stations: {
-    "POLICE": policeStation,
-    "FIRE": fireStation,
-    "MEDICAL": hospital,
-    "default": fireStation
+    POLICE: policeStation,
+    FIRE: fireStation,
+    MEDICAL: hospital,
+    default: fireStation,
   },
   incidents: {
-    "fire": incidentFire,
-    "medical": incidentMedical,
-    "crime": incidentCrime,
-    "default": incidentFire
-  }
+    fire: incidentFire,
+    medical: incidentMedical,
+    crime: incidentCrime,
+    default: incidentFire,
+  },
 };
 
-const getIcon = (category, type) => {
-  const iconUrl = ASSET_PATHS[category]?.[type] || ASSET_PATHS[category]?.["default"];
-  return createLocalIcon(iconUrl);
-};
+const getIcon = (category, type) =>
+  createIcon(ICONS[category]?.[type] || ICONS[category].default);
 
+// ---------------------------------------------------
+// COMPONENT
+// ---------------------------------------------------
 export default function MapView() {
   const [vehicles, setVehicles] = useState([]);
   const [stations, setStations] = useState([]);
   const [incidents, setIncidents] = useState([]);
   const [assignments, setAssignments] = useState([]);
+  const [showRoutes, setShowRoutes] = useState(true);
+  const [timeExceededIncidents, setTimeExceededIncidents] = useState(new Set());
 
-  // 1. Initial Data Load (Stations, Incidents, Assignments, and Initial Vehicle Metadata)
+  const wsConnected = useRef(false);
+
+  // ---------------------------------------------------
+  // INITIAL LOAD (ONCE)
+  // ---------------------------------------------------
   useEffect(() => {
-    const loadInitialData = async () => {
+    const load = async () => {
       try {
-        // Load Vehicles
-        const vehData = await VehicleService.getAllVehicles();
-        const initialVehicles = vehData
-          .map((v) => ({
-            id: v.id,
-            name: v.vehicleType || `Vehicle ${v.id}`,
-            type: v.vehicleType,
-            status: v.vehicleStatus,
-            responder: v.responder,
-            lat: parseFloat(v.stationLatitude),
-            lng: parseFloat(v.stationLongitude),
-          }))
-          .filter((v) => !isNaN(v.lat) && !isNaN(v.lng));
-        setVehicles(initialVehicles);
+        const [veh, sta, inc, ass] = await Promise.all([
+          VehicleService.getAllVehicles(),
+          StationService.getAllStations(),
+          IncidentService.getAllNonSolvedIncidents(),
+          IncidentService.getAssignmentsForNonSolved(),
+        ]);
 
-        // Load Stations
-        const stationData = await StationService.getAllStations();
-        const validStations = stationData
-          .map((s) => ({
-            id: s.id,
-            name: s.name,
-            type: s.type,
-            lat: parseFloat(s.latitude),
-            lng: parseFloat(s.longitude),
-          }))
-          .filter((s) => !isNaN(s.lat) && !isNaN(s.lng));
-        setStations(validStations);
-
-        // Load Incidents
-        const incidentData = await IncidentService.getAllIncidents();
-        const validIncidents = incidentData
-          .map((i) => ({
-            id: i.id,
-            name: `${i.type} at ${i.reporterName}'s location`,
-            type: i.type,
-            severity: i.severity,
-            status: i.status,
-            lat: parseFloat(i.latitude),
-            lng: parseFloat(i.longitude),
-          }))
-          .filter((i) => !isNaN(i.lat) && !isNaN(i.lng));
-        setIncidents(validIncidents);
-
-        // Load Assignments
-        const assignmentData = await IncidentService.getAssignments();
-        setAssignments(assignmentData);
-
-      } catch (err) {
-        console.error("Error loading initial map data:", err);
-      }
-    };
-
-    loadInitialData();
-  }, []);
-
-  // 2. Real-time Polling: Update vehicle positions from Redis every 3 seconds
-  useEffect(() => {
-    const pollVehicleLocations = async () => {
-      try {
-        const liveLocations = await VehicleService.getVehicleLocations();
-        console.log(liveLocations);
-        
-        setVehicles((prevVehicles) => 
-          prevVehicles.map((v) => {
-            const match = liveLocations.find((loc) => loc.id === v.id);
-            if (match) {
-              return { 
-                ...v, 
-                lat: match.latitude, 
-                lng: match.longitude 
-              };
-            }
-            return v;
-          })
+        setVehicles(
+          veh
+            .map((v) => ({
+              id: v.id,
+              name: v.vehicleType,
+              type: v.vehicleType,
+              status: v.vehicleStatus,
+              responder: v.responder,
+              lat: +v.stationLatitude,
+              lng: +v.stationLongitude,
+            }))
+            .filter((v) => !isNaN(v.lat))
         );
-      } catch (err) {
-        console.error("Error polling vehicle locations:", err);
+
+        setStations(
+          sta
+            .map((s) => ({
+              id: s.id,
+              name: s.name,
+              type: s.type,
+              lat: +s.latitude,
+              lng: +s.longitude,
+            }))
+            .filter((s) => !isNaN(s.lat))
+        );
+
+        setIncidents(
+          inc
+            .map((i) => ({
+              id: i.id,
+              type: i.type,
+              severity: i.severity,
+              status: i.status,
+              lat: +i.latitude,
+              lng: +i.longitude,
+            }))
+            .filter((i) => !isNaN(i.lat))
+        );
+
+        setAssignments(ass);
+      } catch (e) {
+        console.error("Map load error", e);
       }
     };
 
-    const interval = setInterval(pollVehicleLocations, 500);
-    return () => clearInterval(interval); // Cleanup on component unmount
+    load();
   }, []);
 
+  // ---------------------------------------------------
+  // WEBSOCKET (ONE CONNECTION ONLY)
+  // ---------------------------------------------------
+  useEffect(() => {
+    if (wsConnected.current) return;
+    wsConnected.current = true;
+
+    wsService.connect(
+      (status) => {
+        console.log("🟢 WS status:", status);
+
+        if (status !== "connected") return;
+
+        wsService.subscribe("/topic/vehicles", (u) => {
+          setVehicles((prev) => {
+            if (u.type === "VEHICLE_REMOVED") {
+              console.log("🚗 Vehicle removed:", u.vehicleId);
+              return prev.filter((v) => v.id !== u.vehicleId);
+            }
+          
+            const index = prev.findIndex((v) => v.id === u.id);
+
+            // 🔹 UPDATE
+            if (index !== -1) {
+              const updated = [...prev];
+              updated[index] = {
+                ...updated[index],
+                lat: u.latitude,
+                lng: u.longitude,
+                status: u.status ?? updated[index].status,
+              };
+              return updated;
+            }
+
+            return [
+              ...prev,
+              {
+                id: u.id,
+                name: u.vehicleType || `Vehicle ${u.id}`,
+                type: u.vehicleType,
+                status: u.status,
+                responder: u.responder,
+                lat: u.latitude,
+                lng: u.longitude,
+              },
+            ];
+          });
+        });
+
+        // 🔹 Stations
+        wsService.subscribe("/topic/stations", (e) => {
+          if (e.type !== "STATION_ADDED") return;
+
+          setStations((prev) =>
+            prev.some((s) => s.id === e.stationId)
+              ? prev
+              : [
+                  ...prev,
+                  {
+                    id: e.stationId,
+                    name: e.name,
+                    type: e.stationType,
+                    lat: e.latitude,
+                    lng: e.longitude,
+                  },
+                ]
+          );
+        });
+
+        // 🔹 Assignments
+        wsService.subscribe("/topic/assignments", (event) => {
+          console.log("📡 Assignment WS event:", event);
+
+          switch (event.type) {
+            case "ASSIGNED":
+              setAssignments((prev) => {
+                const exists = prev.some(
+                  (a) =>
+                    a.incidentId === event.incidentId &&
+                    a.vehicleId === event.vehicleId
+                );
+
+                if (exists) return prev;
+
+                return [
+                  ...prev,
+                  {
+                    incidentId: event.incidentId,
+                    vehicleId: event.vehicleId,
+                    stationName: event.stationName,
+                  },
+                ];
+              });
+              break;
+
+            case "UNASSIGNED":
+              setAssignments((prev) =>
+                prev.filter(
+                  (a) =>
+                    !(
+                      a.incidentId === event.incidentId &&
+                      a.vehicleId === event.vehicleId
+                    )
+                )
+              );
+              break;
+
+            default:
+              console.warn("Unknown assignment event:", event);
+          }
+        });
+
+        // 🔹 Incidents
+        wsService.subscribe("/topic/incidents", (e) => {
+          if (e.type === "REPORTED") {
+            setIncidents((prev) => [
+              ...prev,
+              {
+                id: e.incidentId,
+                type: e.incidentType,
+                severity: e.severity,
+                status: e.status,
+                lat: e.latitude,
+                lng: e.longitude,
+              },
+            ]);
+          } else if (e.type === "DELETED") {
+            setIncidents((prev) => prev.filter((i) => i.id !== e.incidentId));
+          }else if (e.type === "TIME") {
+            setTimeExceededIncidents((prev) => new Set(prev).add(e.incidentId));
+          }
+        });
+      },
+      (msg) => console.log("📩 WS message:", msg)
+    );
+
+    return () => {
+      wsService.disconnect();
+      wsConnected.current = false;
+    };
+  }, []);
+
+  // ---------------------------------------------------
+  // FAST LOOKUPS (NO FIND INSIDE RENDER)
+  // ---------------------------------------------------
+  const stationMap = useMemo(
+    () => Object.fromEntries(stations.map((s) => [s.name, s])),
+    [stations]
+  );
+
+  const incidentMap = useMemo(
+    () => Object.fromEntries(incidents.map((i) => [i.id, i])),
+    [incidents]
+  );
+
+  // ---------------------------------------------------
+  // RENDER
+  // ---------------------------------------------------
   return (
-    <div className="flex w-full h-screen">
-      <div className="w-80 flex-shrink-0 flex flex-col border-r-2 border-red-600 bg-[#191919] p-3 overflow-y-auto">
-        <ListGroup title="Vehicles" items={vehicles} />
-        <ListGroup title="Incidents" items={incidents} />
-        <ListGroup title="Stations" items={stations} />
-      </div>
+    <div className="relative h-screen w-full">
+      {/* Toggle Button */}
+      <button
+        onClick={() => setShowRoutes(!showRoutes)}
+        className={`absolute top-4 right-4 z-[1000] px-4 py-2 rounded-lg shadow-lg font-semibold transition-all duration-200 ${
+          showRoutes
+            ? "bg-red-600 hover:bg-red-700 text-white"
+            : "bg-gray-600 hover:bg-gray-700 text-white"
+        }`}
+      >
+        {showRoutes ? "Hide Routes" : "Show Routes"}
+      </button>
 
       <MapContainer
         center={[26, 31]}
         zoom={6}
-        className="h-full w-full bg-gray-950 outline-none"
-        zoomControl={false}
+        className="h-full w-full"
+        preferCanvas
       >
-        <TileLayer
-          attribution="&copy; Stadia Maps"
-          url="https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
-        />
+        <TileLayer url="https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png" />
 
         {vehicles.map((v) => (
-         <Marker
-          key={`veh-${v.id}-${v.lat}-${v.lng}`}
-          position={[v.lat, v.lng]}
-          icon={getIcon("vehicles", v.type)}
-        >
-            <Popup>
-              <strong>{v.name}</strong><br />
-              Status: {v.status}<br />
-              Responder: {v.responder}
-            </Popup>
+          <Marker
+            key={`veh-${v.id}`}
+            position={[v.lat, v.lng]}
+            icon={getIcon("vehicles", v.type)}
+          >
+            <Popup>{v.name}</Popup>
           </Marker>
         ))}
 
-        {/* Station Markers */}
         {stations.map((s) => (
-          <Marker key={`sta-${s.id}`} position={[s.lat, s.lng]} icon={getIcon("stations", s.type)}>
-            <Popup>
-              <strong>{s.name}</strong><br />
-              Type: {s.type}
-            </Popup>
+          <Marker
+            key={`sta-${s.id}`}
+            position={[s.lat, s.lng]}
+            icon={getIcon("stations", s.type)}
+          >
+            <Popup>{s.name}</Popup>
           </Marker>
         ))}
 
-        {/* Incident Markers */}
-        {incidents.map((i) => (
-          <Marker key={`inc-${i.id}`} position={[i.lat, i.lng]} icon={getIcon("incidents", i.type)}>
+      {incidents.map((i) => {
+        const isTimeExceeded = timeExceededIncidents.has(i.id);
+        const icon = createGlowingIcon(
+          ICONS.incidents[i.type] || ICONS.incidents.default,
+          isTimeExceeded
+        );
+
+        return (
+          <Marker key={`inc-${i.id}`} position={[i.lat, i.lng]} icon={icon}>
             <Popup>
-              <strong>Incident #{i.id}</strong><br />
-              Type: {i.type}<br />
-              Severity: {i.severity}<br />
-              Status: {i.status}
+              Incident #{i.id} {isTimeExceeded && "(⏰ Time Exceeded)"}
             </Popup>
           </Marker>
-        ))}
+        );
+      })}
 
-        {/* Live Routes - Automatically updates when vehicle positions change */}
-        {assignments.map((a, index) => {
-          const vehicle = vehicles.find((v) => v.id === a.vehicleId);
-          const incident = incidents.find((i) => i.id === a.incidentId);
-          if (!vehicle || !incident) return null;
 
-          return (
-            <RoutingLayer
-              key={`route-${a.vehicleId}-${a.incidentId}-${index}`}
-              vehicle={vehicle}
-              incident={incident}
-            />
-          );
-        })}
+        {/* Conditionally render routing paths */}
+        {showRoutes &&
+          assignments.map((a, idx) => {
+            const st = stationMap[a.stationName];
+            const inc = incidentMap[a.incidentId];
+            if (!st || !inc) return null;
+
+            return <RoutingLayer key={`r-${idx}`} start={st} end={inc} />;
+          })}
       </MapContainer>
-    </div>
-  );
-}
-
-function ListGroup({ title, items }) {
-  return (
-    <div className="mb-6">
-      <h2 className="text-xs font-bold text-red-400 uppercase mb-2 sticky top-0 bg-[#191919] py-1">
-        {title}
-      </h2>
-      {items.map((item) => (
-        <div
-          key={`${item.id}`}
-          className="mb-2 p-2 bg-black/50 text-red-300 rounded border border-transparent hover:border-red-900 transition-colors"
-        >
-          <div className="font-bold text-sm">{item.name}</div>
-          <div className="flex justify-between items-center mt-1">
-             <span className="text-[10px] text-gray-500">{item.type}</span>
-             {item.severity && <span className="text-[10px] px-1 bg-red-900/30 rounded">Lv. {item.severity}</span>}
-          </div>
-        </div>
-      ))}
     </div>
   );
 }

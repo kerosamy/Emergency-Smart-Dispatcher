@@ -1,17 +1,17 @@
 import { Polyline, useMap } from "react-leaflet";
 import { useEffect, useState } from "react";
 
-export default function RoutingLayer({ vehicle, incident }) {
-  const map = useMap();
+export default function RoutingLayer({ start, end }) {
   const [positions, setPositions] = useState([]);
 
   useEffect(() => {
-    if (!vehicle || !incident) return;
+    console.log("RoutingLayer received start and end:", start, end);
+    if (!start || !end) return;
 
     const fetchRoute = async () => {
       try {
         const res = await fetch(
-          `http://localhost:8080/api/route?startLat=${vehicle.lat}&startLng=${vehicle.lng}&endLat=${incident.lat}&endLng=${incident.lng}`
+          `http://localhost:8080/api/route?startLat=${start.lat}&startLng=${start.lng}&endLat=${end.lat}&endLng=${end.lng}`
         );
         const data = await res.json();
         
@@ -25,49 +25,30 @@ export default function RoutingLayer({ vehicle, incident }) {
     };
 
     fetchRoute();
-  }, [vehicle, incident]);
+  }, [start, end]);
 
   if (!positions.length) return null;
 
-  // Key Coordinates
-  const startPoint = [vehicle.lat, vehicle.lng]; 
+  const startPoint = [start.lat, start.lng]; 
   const firstRoutePoint = positions[0]; 
   const lastRoutePoint = positions[positions.length - 1]; 
-  const destinationPoint = [incident.lat, incident.lng]; 
+  const destinationPoint = [end.lat, end.lng]; 
 
-  // Style for the "Off-Road" connectors
   const connectorStyle = {
-    color: "#A0A0A0", // Light Grey
+    color: "#A0A0A0",
     weight: 3,
-    dashArray: "10, 10", // Explicitly dashed
+    dashArray: "10, 10",
     opacity: 0.6
   };
 
   return (
     <>
-      {/* 1. START CONNECTOR (Vehicle to Road) */}
-      <Polyline
-        positions={[startPoint, firstRoutePoint]}
-        pathOptions={connectorStyle}
-      />
-
-      {/* 2. MAIN VIBRANT ROUTE (Solid Cyan) */}
+      <Polyline positions={[startPoint, firstRoutePoint]} pathOptions={connectorStyle} />
       <Polyline 
         positions={positions} 
-        pathOptions={{ 
-          color: "#00FFFF", // Vibrant Cyan
-          weight: 4,        // Slightly thicker for importance
-          opacity: 1,
-          dashArray: null,  // FORCE SOLID LINE
-          lineJoin: "round"
-        }} 
+        pathOptions={{ color: "#00FFFF", weight: 4, opacity: 1, dashArray: null, lineJoin: "round" }} 
       />
-
-      {/* 3. END CONNECTOR (Road to Incident) */}
-      <Polyline
-        positions={[lastRoutePoint, destinationPoint]}
-        pathOptions={connectorStyle}
-      />
+      <Polyline positions={[lastRoutePoint, destinationPoint]} pathOptions={connectorStyle} />
     </>
   );
 }

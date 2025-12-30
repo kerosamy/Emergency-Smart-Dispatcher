@@ -26,11 +26,11 @@ class DriverSimulator:
             # Wait for CONNECTED response
             response = await self.ws.recv()
             if "CONNECTED" in response:
-                print(f"[{self.driver_email}] ✅ Connected")
+                print(f"[{self.driver_email}]  Connected")
                 return True
             return False
         except Exception as e:
-            print(f"[{self.driver_email}] ❌ Connection failed: {e}")
+            print(f"[{self.driver_email}]  Connection failed: {e}")
             return False
 
     async def subscribe(self):
@@ -51,12 +51,10 @@ class DriverSimulator:
             if not raw_message.startswith("MESSAGE"):
                 return None
             
-            # Split headers and body
             parts = raw_message.split('\n\n', 1)
             if len(parts) < 2:
                 return None
             
-            # Extract body (remove null terminator)
             body = parts[1].rstrip('\x00')
             return json.loads(body)
             
@@ -66,7 +64,7 @@ class DriverSimulator:
 
     async def listen(self):
         """Listen for incoming assignments"""
-        print(f"[{self.driver_email}] 👂 Listening for assignments...\n")
+        print(f"[{self.driver_email}]  Listening for assignments...\n")
         
         try:
             while self.running:
@@ -82,30 +80,31 @@ class DriverSimulator:
                         await self.handle_assignment(assignment)
                         
         except websockets.exceptions.ConnectionClosed:
-            print(f"[{self.driver_email}] 🔌 Connection closed")
+            print(f"[{self.driver_email}]  Connection closed")
         except Exception as e:
-            print(f"[{self.driver_email}] ❌ Listen error: {e}")
+            print(f"[{self.driver_email}]  Listen error: {e}")
 
     async def handle_assignment(self, assignment):
         print(f"\n🚨 Assignment received for {self.driver_email}")
 
         vehicle_id = assignment.get("vehicleId")
+        Incident_id = assignment.get("incidentId")
 
         route = assignment.get("route", {})
         routes = route.get("routes", [])
 
         if not routes:
-            print("❌ No route found")
+            print(" No route found")
             return
 
         coordinates = routes[0]["geometry"]["coordinates"]
 
-        print(f"🛣️ Route points: {len(coordinates)}")
-        print("🚗 Starting movement...\n")
+        print(f" Route points: {len(coordinates)}")
+        print(" Starting movement...\n")
 
-        await walk_route(vehicle_id, coordinates)
+        await walk_route(vehicle_id, Incident_id, coordinates)
 
-        print("✅ Vehicle reached destination")
+        print(" Vehicle reached destination")
 
     async def disconnect(self):
         """Disconnect from WebSocket"""
@@ -130,7 +129,7 @@ async def driver_task(driver_email):
     except KeyboardInterrupt:
         pass
     except Exception as e:
-        print(f"[{driver_email}] ❌ Error: {e}")
+        print(f"[{driver_email}]  Error: {e}")
     finally:
         await driver.disconnect()
 
@@ -146,8 +145,8 @@ async def main(n):
     try:
         await asyncio.gather(*tasks)
     except KeyboardInterrupt:
-        print("\n\n👋 Shutting down simulation...")
+        print("\n\n Shutting down simulation...")
 
 if __name__ == "__main__":
-    n = 10  # Number of simulated drivers
+    n = 75  # Number of simulated drivers
     asyncio.run(main(n))

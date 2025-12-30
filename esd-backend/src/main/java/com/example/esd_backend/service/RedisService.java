@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class RedisService {
@@ -21,8 +22,10 @@ public class RedisService {
     public void save(VehicleLocationDto dto) {
         String redisKey = "id:" + dto.getId();
         String posValue = dto.getLatitude() + "," + dto.getLongitude();
-        redisTemplate.opsForValue().set(redisKey, posValue);
-        System.out.println("DEBUG: Vehicle " + dto.getId() + " initialized in Redis at " + posValue);
+
+        int expireTime = 5;
+        redisTemplate.opsForValue()
+                .set(redisKey, posValue, expireTime, TimeUnit.SECONDS);
     }
 
     public List<VehicleLocationDto> getAllVehicles() {

@@ -23,18 +23,20 @@ public class VehicleService {
     private final UserRepository userRepository;
     private final AutoAssign autoAssign;
     private final RedisService redisService;
+    private final NotificationService notificationService;
 
     public VehicleService(VehicleRepository vehicleRepository,
                           StationRepository stationRepository,
                           UserRepository userRepository,
                           AutoAssign autoAssign,
-                          RedisService redisService
-    ) {
+                          RedisService redisService,
+                          NotificationService notificationService) {
         this.vehicleRepository = vehicleRepository;
         this.stationRepository = stationRepository;
         this.userRepository = userRepository;
         this.autoAssign = autoAssign;
         this.redisService = redisService;
+        this.notificationService = notificationService;
     }
 
     public void addVehicle(VehicleDto vehicleDto) {
@@ -53,12 +55,7 @@ public class VehicleService {
         station.getVehicles().add(vehicle);
 
         Vehicle savedVehicle = vehicleRepository.save(vehicle);
-
-        // STEP 1: Save to Redis
-        VehicleLocationDto dto = new VehicleLocationDto(savedVehicle.getId(),station.getLatitude(),station.getLongitude());
-        redisService.save(dto);
-
-        autoAssign.handleNewVehicle(vehicle);
+        autoAssign.handleNewVehicle(savedVehicle);
     }
 
     public List<UnassignedVehicleDto> getUnassignedVehicles() {
@@ -124,5 +121,13 @@ public class VehicleService {
 
     public void moveVehicle (VehicleLocationDto dto){
         redisService.save(dto);
+        notificationService.notifyMovingVehicle(dto);
+    }
+
+    public void setAvailableVehicle (Long id){
+        Vehicle vehicle = vehicleRepository.SearchId(id);
+        vehicle.setVehicleStatus(VehicleStatus.AVAILABLE);
+        notificationService.notifyRemovingVehicle(id);
+        autoAssign.handleNewVehicle(vehicle);
     }
 }

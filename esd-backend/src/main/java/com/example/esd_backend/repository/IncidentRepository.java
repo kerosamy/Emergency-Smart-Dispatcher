@@ -12,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -48,7 +49,19 @@ public interface IncidentRepository extends JpaRepository<Incident, Long> {
        nativeQuery = true)
     void deleteById(Long id);
 
+    @Query(value = "SELECT * FROM incident WHERE status <> 'RESOLVED'", nativeQuery = true)
+    List<Incident> findAllNonResolvedNative();
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT i FROM Incident i WHERE i.id = :id")
     Incident findByIdForUpdate(@Param("id") Long id);
+
+    @Transactional
+    @Query("SELECT i FROM Incident i " +
+            "WHERE i.status = :status " +
+            "AND i.reportTime <= :thresholdTime")
+    List<Incident> findReportedIncidentsExceedingTime(
+            @Param("status") IncidentStatus status,
+            @Param("thresholdTime") LocalDateTime thresholdTime
+    );
 }

@@ -63,4 +63,10 @@ public class VehicleController {
         vehicleService.moveVehicle(dto);
         return ResponseEntity.ok().build();
     }
+
+    @PatchMapping("/{id}/available")
+    public ResponseEntity<Void>  setAvailableVehicle (@PathVariable Long id){
+        vehicleService.setAvailableVehicle(id);
+        return ResponseEntity.ok().build();
+    }
 }

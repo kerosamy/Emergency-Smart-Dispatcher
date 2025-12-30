@@ -40,20 +40,21 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
                 if (StompCommand.CONNECT.equals(accessor.getCommand())) {
+                    // Check for driver-email header (for Python driver simulator only)
                     String driverEmail = accessor.getFirstNativeHeader("driver-email");
                     if (driverEmail != null) {
-                        // Create a Principal with the driver's email
                         Principal principal = () -> driverEmail;
                         accessor.setUser(principal);
-
                         System.out.println("✅ Driver connected: " + driverEmail);
-                        System.out.println("   Session ID: " + accessor.getSessionId());
+                    } else {
+                        System.out.println("✅ Anonymous client connected");
                     }
+                    System.out.println("   Session ID: " + accessor.getSessionId());
                 }
 
                 if (StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
-                    System.out.println("📡 Subscription: " + accessor.getDestination() +
-                            " by " + (accessor.getUser() != null ? accessor.getUser().getName() : "unknown"));
+                    String user = accessor.getUser() != null ? accessor.getUser().getName() : "anonymous";
+                    System.out.println("📡 Subscription: " + accessor.getDestination() + " by " + user);
                 }
 
                 return message;
