@@ -100,5 +100,58 @@ public interface SolvedByRepository extends JpaRepository<SolvedBy, Long> {;
                "ORDER BY avg_response ASC " +
                "LIMIT 10", nativeQuery = true)
     List<Object[]> getTop10StationsByAvgResponseTime(@Param("stationType") String stationType);
+
+    @Query(value = "SELECT " +
+            "DATE(c.solution_time) as date, " +
+            "AVG(TIMESTAMPDIFF(SECOND, a.assign_time, c.solution_time)) as avg_response, " +
+            "COUNT(*) as incident_count " +
+            "FROM incident i " +
+            "JOIN assign_to a ON i.id = a.incident_id " +
+            "JOIN confirm c ON i.id = c.incident_id AND a.vehicle_id = c.vehicle_id " +
+            "WHERE c.solution_time IS NOT NULL " +
+            "  AND (:startDate IS NULL OR DATE(c.solution_time) >= :startDate) " +
+            "  AND (:endDate IS NULL OR DATE(c.solution_time) <= :endDate) " +
+            "  AND (:type IS NULL OR i.type = :type) " +
+            "GROUP BY DATE(c.solution_time) " +
+            "ORDER BY date", nativeQuery = true)
+    List<Object[]> getDailyResponseTimeSeries(
+        @Param("type") String type,
+        @Param("startDate") String startDate,
+        @Param("endDate") String endDate
+    );
+
+    @Query(value = "SELECT " +
+            "DATE(c.solution_time) as date, " +
+            "i.type, " +
+            "AVG(TIMESTAMPDIFF(SECOND, a.assign_time, c.solution_time)) as avg_response " +
+            "FROM incident i " +
+            "JOIN assign_to a ON i.id = a.incident_id " +
+            "JOIN confirm c ON i.id = c.incident_id AND a.vehicle_id = c.vehicle_id " +
+            "WHERE c.solution_time IS NOT NULL " +
+            "  AND (:startDate IS NULL OR DATE(c.solution_time) >= :startDate) " +
+            "  AND (:endDate IS NULL OR DATE(c.solution_time) <= :endDate) " +
+            "GROUP BY DATE(c.solution_time), i.type " +
+            "ORDER BY date, i.type", nativeQuery = true)
+    List<Object[]> getResponseTimeSeriesByType(
+        @Param("startDate") String startDate,
+        @Param("endDate") String endDate
+    );
+
+    @Query(value = "SELECT " +
+            "HOUR(c.solution_time) as hour, " +
+            "AVG(TIMESTAMPDIFF(SECOND, a.assign_time, c.solution_time)) as avg_response, " +
+            "COUNT(*) as incident_count " +
+            "FROM incident i " +
+            "JOIN assign_to a ON i.id = a.incident_id " +
+            "JOIN confirm c ON i.id = c.incident_id AND a.vehicle_id = c.vehicle_id " +
+            "WHERE c.solution_time IS NOT NULL " +
+            "  AND DATE(c.solution_time) = :date " +
+            "  AND (:type IS NULL OR i.type = :type) " +
+            "GROUP BY HOUR(c.solution_time) " +
+            "ORDER BY hour", nativeQuery = true)
+    List<Object[]> getHourlyResponseTimeDistribution(
+        @Param("date") String date,
+        @Param("type") String type
+    );
     
 }

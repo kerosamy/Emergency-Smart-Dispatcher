@@ -155,4 +155,47 @@ public class SolvedByController {
                 .body("Error generating PDF: " + e.getMessage());
         }
     }
+
+    @GetMapping("/time-series/daily")
+    public ResponseEntity<?> getDailyTimeSeries(
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate) {
+        try {
+            List<TimeSeriesDataPointDTO> results = analyticsService
+                .getDailyResponseTimeSeries(type, startDate, endDate);
+            return ResponseEntity.ok(results);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                .body("Error fetching time series: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/time-series/by-type")
+    public ResponseEntity<?> getTimeSeriesByType(
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate) {
+        try {
+            List<TimeSeriesDataPointDTO> results = analyticsService
+                .getResponseTimeSeriesByType(startDate, endDate);
+            return ResponseEntity.ok(results);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                .body("Error fetching time series by type: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/time-series/hourly")
+    public ResponseEntity<?> getHourlyDistribution(
+            @RequestParam String date,
+            @RequestParam(required = false) String type) {
+        try {
+            List<TimeSeriesDataPointDTO> results = analyticsService
+                .getHourlyDistribution(date, type);
+            return ResponseEntity.ok(results);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                .body("Error fetching hourly distribution: " + e.getMessage());
+        }
+    }
 }

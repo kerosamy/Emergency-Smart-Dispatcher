@@ -62,5 +62,20 @@ public class SolvedByService {
             PDFRequestConverter.createVehicleHeaders(),
             PDFRequestConverter.createStationHeaders());
     }
+    public List<TimeSeriesDataPointDTO> getDailyResponseTimeSeries(
+        String type, String startDate, String endDate) {
+        List<Object[]> rawResults = solvedByRepository.getDailyResponseTimeSeries(type, startDate, endDate);
+        return solvedByMapper.convertToTimeSeriesDTO(rawResults);
+    }
 
+    public List<TimeSeriesDataPointDTO> getResponseTimeSeriesByType(
+            String startDate, String endDate) {
+        List<Object[]> rawResults = solvedByRepository.getResponseTimeSeriesByType(startDate, endDate);
+        return solvedByMapper.convertToTimeSeriesByTypeDTO(rawResults);
+    }
+
+    public List<TimeSeriesDataPointDTO> getHourlyDistribution(String date, String type) {
+        List<Object[]> rawResults = solvedByRepository.getHourlyResponseTimeDistribution(date, type);
+        return solvedByMapper.convertToTimeSeriesDTO(rawResults);
+    }
 }

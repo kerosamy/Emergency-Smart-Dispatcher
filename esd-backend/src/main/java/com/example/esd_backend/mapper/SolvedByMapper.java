@@ -91,4 +91,36 @@ public class SolvedByMapper {
         return dtos;
     }
 
+    public List<TimeSeriesDataPointDTO> convertToTimeSeriesDTO(List<Object[]> rawResults) {
+        List<TimeSeriesDataPointDTO> dtos = new ArrayList<>();
+        
+        for (Object[] row : rawResults) {
+            TimeSeriesDataPointDTO dto = TimeSeriesDataPointDTO.builder()
+                .date(row[0] != null ? row[0].toString() : null)
+                .avgResponseTime(row[1] != null ? ((Number) row[1]).doubleValue() : null)
+                .incidentCount(row[2] != null ? ((Number) row[2]).longValue() : null)
+                .build();
+            
+            dtos.add(dto);
+        }
+        
+        return dtos;
+    }
+
+    public List<TimeSeriesDataPointDTO> convertToTimeSeriesByTypeDTO(List<Object[]> rawResults) {
+        List<TimeSeriesDataPointDTO> dtos = new ArrayList<>();
+        
+        for (Object[] row : rawResults) {
+            TimeSeriesDataPointDTO dto = TimeSeriesDataPointDTO.builder()
+                .date(row[0] != null ? row[0].toString() : null)
+                .type(row[1] != null ? row[1].toString() : null)
+                .avgResponseTime(row[2] != null ? ((Number) row[2]).doubleValue() : null)
+                .build();
+            
+            dtos.add(dto);
+        }
+        
+        return dtos;
+    }
+
 }

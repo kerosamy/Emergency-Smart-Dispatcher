@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import ReportService from "../services/ReportService";
+import TimeSeriesChart from "../Components/StatisticsComponents/TimeSeriesChart";
+import MultiTypeTimeSeriesChart from "../Components/StatisticsComponents/MultiTypeTimeSeriesChart";
+import HourlyDistributionChart from "../Components/StatisticsComponents/HourlyDistributionChart";
 
 export default function Reports() {
   // Filter states
@@ -17,6 +20,9 @@ export default function Reports() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [exportLoading, setExportLoading] = useState(false);
+  const [chartStartDate, setChartStartDate] = useState("");
+  const [chartEndDate, setChartEndDate] = useState("");
+  const [selectedChartDate, setSelectedChartDate] = useState("");
 
   const incidentTypes = ["FIRE", "MEDICAL", "CRIME"];
 
@@ -360,7 +366,7 @@ export default function Reports() {
         )}
 
         {/* Top 10 Lists */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
             {/* Top 10 Vehicles */}
             <div className="bg-black/60 backdrop-blur-lg border-2 border-red-500/30 rounded-2xl p-6 overflow-hidden">
               <h2 className="text-2xl font-bold text-red-400 mb-6 border-b border-red-500/30 pb-4">
@@ -474,7 +480,89 @@ export default function Reports() {
                 <p className="text-center text-white/60 py-8">No station data available</p>
               )}
             </div>
+        </div>
+
+        {/* TIME SERIES CHARTS SECTION */}
+        <div className="mb-12">
+          <h2 className="text-3xl font-bold text-red-400 mb-6">
+            Response Time Trends
+          </h2>
+
+            {/* Chart Date Range Filters */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 bg-black/60 backdrop-blur-lg p-6 rounded-2xl border border-red-500/30">
+            <div className="flex flex-col">
+              <label className="text-red-300 font-semibold mb-2 text-sm">
+                Start Date
+              </label>
+              <input
+                type="date"
+                value={chartStartDate}
+                onChange={(e) => setChartStartDate(e.target.value)}
+                className="p-3 rounded-xl bg-black/50 border border-red-500/50 text-white focus:outline-none focus:ring-2 focus:ring-red-500"
+              />
+            </div>
+
+            <div className="flex flex-col">
+              <label className="text-red-300 font-semibold mb-2 text-sm">
+                End Date
+              </label>
+              <input
+                type="date"
+                value={chartEndDate}
+                onChange={(e) => setChartEndDate(e.target.value)}
+                className="p-3 rounded-xl bg-black/50 border border-red-500/50 text-white focus:outline-none focus:ring-2 focus:ring-red-500"
+              />
+            </div>
+
+            <div className="flex flex-col">
+              <label className="text-red-300 font-semibold mb-2 text-sm">
+                Hourly Analysis Date
+              </label>
+              <input
+                type="date"
+                value={selectedChartDate}
+                onChange={(e) => setSelectedChartDate(e.target.value)}
+                className="p-3 rounded-xl bg-black/50 border border-red-500/50 text-white focus:outline-none focus:ring-2 focus:ring-red-500"
+              />
+            </div>
           </div>
+
+          {/* Daily Time Series Chart */}
+          <div className="bg-black/60 backdrop-blur-lg border-2 border-red-500/30 rounded-2xl p-6 mb-6">
+            <h3 className="text-xl font-bold text-red-400 mb-4">
+              Daily Response Time Trend
+              {selectedType && ` - ${selectedType}`}
+            </h3>
+            <TimeSeriesChart
+              type={selectedType}
+              startDate={chartStartDate}
+              endDate={chartEndDate}
+            />
+          </div>
+
+          {/* Multi-Type Comparison Chart */}
+          <div className="bg-black/60 backdrop-blur-lg border-2 border-red-500/30 rounded-2xl p-6 mb-6">
+            <h3 className="text-xl font-bold text-red-400 mb-4">
+              Response Time Comparison by Emergency Type
+            </h3>
+            <MultiTypeTimeSeriesChart
+              startDate={chartStartDate}
+              endDate={chartEndDate}
+            />
+          </div>
+
+          {/* Hourly Distribution Chart */}
+          <div className="bg-black/60 backdrop-blur-lg border-2 border-purple-500/30 rounded-2xl p-6">
+            <h3 className="text-xl font-bold text-purple-400 mb-4">
+              Hourly Response Time Distribution
+              {selectedChartDate && ` - ${new Date(selectedChartDate).toLocaleDateString()}`}
+            </h3>
+            <HourlyDistributionChart
+              date={selectedChartDate}
+              type={selectedType}
+            />
+          </div>
+        </div>
 
       </div>
     </div>
