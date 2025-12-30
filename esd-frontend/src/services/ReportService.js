@@ -87,6 +87,51 @@ class ReportService {
     link.click();
     window.URL.revokeObjectURL(url);
   }
+
+  async getTimeSeriesDaily(type, startDate, endDate) {
+    const token = UserService.getToken();
+    const params = {};
+    
+    if (type) params.type = type;
+    if (startDate) params.startDate = startDate;
+    if (endDate) params.endDate = endDate;
+
+    const res = await axios.get(`${API_URL}/time-series/daily`, {
+      params,
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return res.data;
+  }
+
+  async getTimeSeriesByType(startDate, endDate) {
+    const token = UserService.getToken();
+    const params = {};
+    
+    if (startDate) params.startDate = startDate;
+    if (endDate) params.endDate = endDate;
+
+    const res = await axios.get(`${API_URL}/time-series/by-type`, {
+      params,
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return res.data;
+  }
+
+  async getHourlyDistribution(date, type) {
+    const token = UserService.getToken();
+    const params = { date };
+    
+    if (type) params.type = type;
+
+    const res = await axios.get(`${API_URL}/time-series/hourly`, {
+      params,
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return res.data;
+  }
 }
 
 export default new ReportService();
