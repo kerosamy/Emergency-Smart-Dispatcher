@@ -14,15 +14,12 @@ import com.example.esd_backend.repository.VehicleRepository;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class AutoAssign {
@@ -115,12 +112,10 @@ public class AutoAssign {
         assignTo.setAssignTime(LocalDateTime.now());
         assignToRepository.save(assignTo);
 
-        if (vehicle.getDriver() != null) {
-            SolvedBy solvedBy = new SolvedBy();
-            solvedBy.setIncident(incident);
-            solvedBy.setVehicle(vehicle);
-            solvedByRepository.save(solvedBy);
-        }
+        SolvedBy solvedBy = new SolvedBy();
+        solvedBy.setIncident(incident);
+        solvedBy.setVehicle(vehicle);
+        solvedByRepository.save(solvedBy);
 
         vehicle.setVehicleStatus(VehicleStatus.BUSY);
         vehicleRepository.save(vehicle);
@@ -132,6 +127,9 @@ public class AutoAssign {
 
         // Create a payload for the driver
        notificationService.notifyDriver(incident,vehicle);
+       notificationService.notifyMovingVehicle(vehicle);
+       notificationService.notifyAssignmentCreated(incident,vehicle);
+
 
         if (currentTotal >= required) {
             incident.setStatus(IncidentStatus.DISPATCHED);

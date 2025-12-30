@@ -12,6 +12,15 @@ class IncidentService {
     return res.data;
   }
 
+    async getAllNonSolvedIncidents() {
+    const token = UserService.getToken();
+    const res = await axios.get(`${API_URL}/non-solved`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+     console.log("Fetched incidents:", res.data);
+    return res.data;
+  }
+
   async addIncident(incidentDto) {
     const token = UserService.getToken();
     const res = await axios.post(API_URL, incidentDto, {
@@ -73,6 +82,15 @@ class IncidentService {
     });
     return res.data;
   }
+
+    async getAssignmentsForNonSolved() {
+    const token = UserService.getToken();
+    const res = await axios.get(`${API_URL}/assignments/non-resolved`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return res.data;
+  }
+
 }
 
 export default new IncidentService();

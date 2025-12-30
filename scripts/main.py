@@ -12,11 +12,11 @@ def main(n):
     create_stations(n, minX, maxX, minY, maxY)
 
     print(f"\n=== Creating {n} vehicles ===")
-    create_vehicles(n, station_count=n)  # Assign vehicles to created stations
+    create_vehicles(n, station_count=n)  
 
-    print(f"\n=== Reporting {n} incidents ===")
-    report_incidents(n)
+    # print(f"\n=== Reporting {n} incidents ===")
+    # report_incidents(n)
 
 if __name__ == "__main__":
-    n = 10  # Change this to any number of responders/stations/vehicles/incidents
+    n = 75  
     main(n)

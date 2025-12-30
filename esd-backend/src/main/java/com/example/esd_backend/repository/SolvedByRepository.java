@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -154,4 +155,5 @@ public interface SolvedByRepository extends JpaRepository<SolvedBy, Long> {;
         @Param("type") String type
     );
     
+    List<SolvedBy> findAllByIncident(Incident incident);
 }
