@@ -14,5 +14,5 @@ public class VehicleDto {
     private Integer capacity;
     private VehicleStatus vehicleStatus;
     private String stationName;
-    private Long responderId;
+    private String responderEmail;
 }

@@ -4,11 +4,22 @@ import UserService from "./UserService";
 const API_URL = "http://localhost:8080/incidents";
 
 class IncidentService {
+
+  
   async getAllIncidents() {
     const token = UserService.getToken();
     const res = await axios.get(API_URL, {
       headers: { Authorization: `Bearer ${token}` },
     });
+    return res.data;
+  }
+
+    async getAllNonSolvedIncidents() {
+    const token = UserService.getToken();
+    const res = await axios.get(`${API_URL}/non-solved`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+     console.log("Fetched incidents:", res.data);
     return res.data;
   }
 
@@ -73,6 +84,24 @@ class IncidentService {
     });
     return res.data;
   }
+
+    async getAssignmentsForNonSolved() {
+    const token = UserService.getToken();
+    const res = await axios.get(`${API_URL}/assignments/non-resolved`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return res.data;
+  }
+
+    async getIncidentsByStatus(status) {
+    const token = UserService.getToken();
+    const res = await axios.get(`${API_URL}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { status }, 
+    });
+    return res.data;
+  }
+
 }
 
 export default new IncidentService();

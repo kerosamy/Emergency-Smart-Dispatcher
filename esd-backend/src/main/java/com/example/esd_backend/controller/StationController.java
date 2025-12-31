@@ -19,13 +19,11 @@ public class StationController {
     }
 
     @PostMapping("/add")
-    @PreAuthorize("hasRole('DISPATCHER')")
     public void addStation(@RequestBody StationDto stationDto) {
         stationService.addStation(stationDto);
     }
 
     @GetMapping("/all")
-    @PreAuthorize("hasRole('DISPATCHER')")
     public ResponseEntity<List<StationDto>> getAllStations() {
         List<StationDto> stations = stationService.getAllStations();
         return ResponseEntity.ok(stations);

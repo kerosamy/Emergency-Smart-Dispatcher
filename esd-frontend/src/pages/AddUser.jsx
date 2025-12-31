@@ -1,7 +1,6 @@
 // src/pages/AddUser.jsx
 import { useState } from "react";
 import UserService from "../services/UserService";
-import axios from "axios";
 
 export default function AddUser() {
   const [name, setName] = useState("");

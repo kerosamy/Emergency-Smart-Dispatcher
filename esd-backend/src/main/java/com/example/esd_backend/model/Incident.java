@@ -36,10 +36,10 @@ public class Incident {
     @Column(nullable = false)
     private double longitude;
     
-    @Column(nullable = true)
+    @Column()
     private Integer severity;
     
-    @Column(nullable = true)
+    @Column()
     private Integer capacity;
 
     @Enumerated(EnumType.STRING)

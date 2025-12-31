@@ -23,14 +23,12 @@ public class UserController {
     }
 
     @PostMapping("/add-user")
-    @PreAuthorize("hasRole('DISPATCHER')")
     public ResponseEntity<Void> addUser(@RequestBody SignUpUserRequestDto signUpUserRequestDto) {
         userService.addUser(signUpUserRequestDto);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/unassigned")
-    @PreAuthorize("hasRole('DISPATCHER')")
     public ResponseEntity<List<UnassignedResponderDto>> getUnassignedResponders() {
         List<UnassignedResponderDto> responders = userService.getUnassignedResponders();
         return ResponseEntity.ok(responders);

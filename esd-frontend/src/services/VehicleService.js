@@ -57,6 +57,7 @@ class VehicleService {
     });
     return res.data;
   }
+
     async deleteVehicle(vehicleId) {
     const token = UserService.getToken();
     const res = await axios.delete(`${API_URL}/delete/${vehicleId}`, {
@@ -64,6 +65,17 @@ class VehicleService {
     });
     return res.data;
   }
+
+
+  async getVehicleLocations() {
+  const token = UserService.getToken();
+  const res = await axios.get(`${API_URL}/locations`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data; // Returns List<VehicleLocationDto>
+}
+
+  
 }
 
 export default new VehicleService();

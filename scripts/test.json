@@ -1,0 +1,8 @@
+{ 
+    "type": "${__V(type_${__Random(1,3)})}",
+    "severity": ${__Random(1,10)},
+    "latitude": ${__groovy(${__Random(298300,309500)} / 10000.0)},
+    "longitude": ${__groovy(${__Random(310000,317000)} / 10000.0)},
+    "status": "REPORTED",
+    "capacity": 5
+}
