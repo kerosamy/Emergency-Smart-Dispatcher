@@ -23,14 +23,6 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     
     List<Vehicle> findByVehicleStatus(VehicleStatus status);
 
-
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT v FROM Vehicle v WHERE v.vehicleStatus = :status AND v.stationType = :stationType")
-    List<Vehicle> findAvailableVehiclesForType(
-            @Param("status") VehicleStatus status,
-            @Param("stationType") StationType stationType);
-
-
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT v FROM Vehicle v WHERE v.id = :id")
     Vehicle findByIdForUpdate(@Param("id") Long id);
