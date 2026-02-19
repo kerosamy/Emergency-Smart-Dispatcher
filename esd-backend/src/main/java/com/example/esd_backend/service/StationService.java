@@ -12,9 +12,11 @@ import java.util.List;
 @Service
 public class StationService {
     private final StationRepository stationRepository;
+    private final NotificationService notificationService;
 
-    public StationService(StationRepository stationRepository) {
+    public StationService(StationRepository stationRepository, NotificationService notificationService) {
         this.stationRepository = stationRepository;
+        this.notificationService = notificationService;
     }
 
     public void addStation(StationDto stationDto) {
@@ -22,7 +24,8 @@ public class StationService {
             throw  new RuntimeException("Station with the same name exists");
         }
         Station station = StationMapper.toEntity(stationDto);
-        stationRepository.InsertStation(station);
+        Station savedStation = stationRepository.save(station);
+        notificationService.notifyAddStation(savedStation);
     }
 
     public List<StationDto> getAllStations() {

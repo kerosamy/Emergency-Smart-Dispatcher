@@ -1,5 +1,6 @@
 package com.example.esd_backend.repository;
 import com.example.esd_backend.model.Vehicle;
+import com.example.esd_backend.model.enums.StationType;
 import com.example.esd_backend.model.enums.VehicleStatus;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -1,9 +1,6 @@
 package com.example.esd_backend.service;
 
-import com.example.esd_backend.dto.UnassignedVehicleDto;
-import com.example.esd_backend.dto.VehicleAssignmentDto;
-import com.example.esd_backend.dto.VehicleDto;
-import com.example.esd_backend.dto.VehicleListDto;
+import com.example.esd_backend.dto.*;
 import com.example.esd_backend.mapper.VehicleMapper;
 import com.example.esd_backend.model.Station;
 import com.example.esd_backend.model.User;
@@ -25,21 +22,30 @@ public class VehicleService {
     private final StationRepository stationRepository;
     private final UserRepository userRepository;
     private final AutoAssign autoAssign;
+    private final RedisService redisService;
+    private final NotificationService notificationService;
 
-    public VehicleService(VehicleRepository vehicleRepository, StationRepository stationRepository, UserRepository userRepository, AutoAssign autoAssign) {
+    public VehicleService(VehicleRepository vehicleRepository,
+                          StationRepository stationRepository,
+                          UserRepository userRepository,
+                          AutoAssign autoAssign,
+                          RedisService redisService,
+                          NotificationService notificationService) {
         this.vehicleRepository = vehicleRepository;
         this.stationRepository = stationRepository;
         this.userRepository = userRepository;
         this.autoAssign = autoAssign;
+        this.redisService = redisService;
+        this.notificationService = notificationService;
     }
 
-    public Vehicle addVehicle(VehicleDto vehicleDto) {
+    public void addVehicle(VehicleDto vehicleDto) {
         Station station = stationRepository.findByName(vehicleDto.getStationName())
                 .orElseThrow(() -> new RuntimeException("station does not exist"));
         Vehicle vehicle = VehicleMapper.toEntity(vehicleDto, station);
         vehicle.setStationType(station.getType());
-        if (vehicleDto.getResponderId() != null) {
-            User responder = userRepository.findById(vehicleDto.getResponderId())
+        if (vehicleDto.getResponderEmail() != null) {
+            User responder = userRepository.findByEmail(vehicleDto.getResponderEmail())
                     .orElseThrow(() -> new RuntimeException("Responder not found"));
             if (responder.getVehicle() != null) {
                 throw new RuntimeException("This responder is already assigned to a vehicle");
@@ -47,8 +53,9 @@ public class VehicleService {
             vehicle.setDriver(responder);
         }
         station.getVehicles().add(vehicle);
-        autoAssign.handleNewVehicle(vehicle);
-        return vehicleRepository.save(vehicle);
+
+        Vehicle savedVehicle = vehicleRepository.save(vehicle);
+        autoAssign.handleNewVehicle(savedVehicle);
     }
 
     public List<UnassignedVehicleDto> getUnassignedVehicles() {
@@ -107,4 +114,21 @@ public class VehicleService {
         vehicleRepository.delete(vehicle);
     }
 
+
+    public List<VehicleLocationDto> getAllVehicleLocations() {
+        return redisService.getAllVehicles();
+    }
+
+    public void moveVehicle (VehicleTypeDto dto){
+        VehicleLocationDto newDto = new VehicleLocationDto(dto.getId(),dto.getLatitude(),dto.getLongitude());
+        redisService.save(newDto);
+        notificationService.notifyMovingVehicle(dto);
+    }
+
+    public void setAvailableVehicle (Long id){
+        Vehicle vehicle = vehicleRepository.SearchId(id);
+        vehicle.setVehicleStatus(VehicleStatus.AVAILABLE);
+        notificationService.notifyRemovingVehicle(id);
+        autoAssign.handleNewVehicle(vehicle);
+    }
 }
